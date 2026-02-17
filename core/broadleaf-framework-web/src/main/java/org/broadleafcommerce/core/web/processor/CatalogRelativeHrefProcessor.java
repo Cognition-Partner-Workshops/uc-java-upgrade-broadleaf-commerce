@@ -23,9 +23,12 @@ import org.broadleafcommerce.common.web.BroadleafRequestContext;
 import org.broadleafcommerce.core.catalog.domain.Category;
 import org.broadleafcommerce.core.catalog.domain.Product;
 import org.broadleafcommerce.core.catalog.service.CatalogURLService;
-import org.thymeleaf.Arguments;
-import org.thymeleaf.dom.Element;
-import org.thymeleaf.processor.attr.AbstractAttributeModifierAttrProcessor;
+import org.thymeleaf.context.ITemplateContext;
+import org.thymeleaf.engine.AttributeName;
+import org.thymeleaf.model.IProcessableElementTag;
+import org.thymeleaf.processor.element.AbstractAttributeTagProcessor;
+import org.thymeleaf.processor.element.IElementTagStructureHandler;
+import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.standard.expression.Expression;
 import org.thymeleaf.standard.expression.StandardExpressions;
 
@@ -47,7 +50,7 @@ import javax.servlet.http.HttpServletRequest;
  * 
  * @author bpolster
  */
-public class CatalogRelativeHrefProcessor extends AbstractAttributeModifierAttrProcessor {
+public class CatalogRelativeHrefProcessor extends AbstractAttributeTagProcessor {
 
     private static final String RHREF = "rhref";
     private static final String HREF = "href";
@@ -56,24 +59,23 @@ public class CatalogRelativeHrefProcessor extends AbstractAttributeModifierAttrP
     protected CatalogURLService catalogURLService;
 
     public CatalogRelativeHrefProcessor() {
-        super(RHREF);
+        super(TemplateMode.HTML, "blc", null, false, RHREF, true, 0, true);
     }
 
     @Override
-    protected Map<String, String> getModifiedAttributeValues(Arguments arguments, Element element, String attributeName) {
-        Expression expression = (Expression) StandardExpressions.getExpressionParser(arguments.getConfiguration())
-                .parseExpression(arguments.getConfiguration(), arguments, element.getAttributeValue(attributeName));
+    protected void doProcess(ITemplateContext context, IProcessableElementTag tag, AttributeName attributeName,
+                             String attributeValue, IElementTagStructureHandler structureHandler) {
+        Expression expression = (Expression) StandardExpressions.getExpressionParser(context.getConfiguration())
+                .parseExpression(context, attributeValue);
         HttpServletRequest request = BroadleafRequestContext.getBroadleafRequestContext().getRequest();
 
-        String relativeHref = buildRelativeHref(expression, arguments, request);
-               
-        Map<String, String> attrs = new HashMap<String, String>();
-        attrs.put(HREF, relativeHref);
-        return attrs;
+        String relativeHref = buildRelativeHref(expression, context, request);
+
+        structureHandler.setAttribute(HREF, relativeHref);
     }
 
-    protected String buildRelativeHref(Expression expression, Arguments arguments, HttpServletRequest request) {
-        Object result = expression.execute(arguments.getConfiguration(), arguments);
+    protected String buildRelativeHref(Expression expression, ITemplateContext context, HttpServletRequest request) {
+        Object result = expression.execute(context);
         String currentUrl = request.getRequestURI();
 
         if (request.getQueryString() != null) {
@@ -86,25 +88,5 @@ public class CatalogRelativeHrefProcessor extends AbstractAttributeModifierAttrP
             return catalogURLService.buildRelativeCategoryURL(currentUrl, (Category) result);
         }
         return "";
-    }
-
-    @Override
-    protected ModificationType getModificationType(Arguments arguments, Element element, String attributeName, String newAttributeName) {
-        return ModificationType.SUBSTITUTION;
-    }
-
-    @Override
-    protected boolean removeAttributeIfEmpty(Arguments arguments, Element element, String attributeName, String newAttributeName) {
-        return true;
-    }
-
-    @Override
-    protected boolean recomputeProcessorsAfterExecution(Arguments arguments, Element element, String attributeName) {
-        return false;
-    }
-
-    @Override
-    public int getPrecedence() {
-        return 0;
     }
 }

@@ -90,7 +90,7 @@ public class SkuAttributeImpl implements SkuAttribute {
     
     /** The name. */
     @Column(name = "NAME", nullable=false)
-    @Index(name="SKUATTR_NAME_INDEX", columnNames={"NAME"})
+    @org.hibernate.annotations.Index(name="SKUATTR_NAME_INDEX", columnNames={"NAME"})
     @AdminPresentation(visibility = VisibilityEnum.HIDDEN_ALL)
     protected String name;
 
@@ -107,7 +107,7 @@ public class SkuAttributeImpl implements SkuAttribute {
     /** The sku. */
     @ManyToOne(targetEntity = SkuImpl.class, optional=false, cascade = CascadeType.REFRESH)
     @JoinColumn(name = "SKU_ID")
-    @Index(name="SKUATTR_SKU_INDEX", columnNames={"SKU_ID"})
+    @org.hibernate.annotations.Index(name="SKUATTR_SKU_INDEX", columnNames={"SKU_ID"})
     protected Sku sku;
 
     /* (non-Javadoc)

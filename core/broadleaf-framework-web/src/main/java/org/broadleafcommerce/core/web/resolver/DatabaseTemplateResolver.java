@@ -19,17 +19,28 @@
  */
 package org.broadleafcommerce.core.web.resolver;
 
-import org.thymeleaf.templateresolver.TemplateResolver;
+import org.thymeleaf.IEngineConfiguration;
+import org.thymeleaf.templateresolver.AbstractConfigurableTemplateResolver;
+import org.thymeleaf.templateresource.ITemplateResource;
+import org.thymeleaf.templateresource.StringTemplateResource;
+
+import java.util.Map;
 
 /**
- * This {@link TemplateResolver} serves as a placeholder class that can be used to inject 
- * a {@link DatabaseResourceResolver}. It doesn't need to actually override any methods from
- * TemplateResolver.
- * 
- * The injection happens in XML configuration.
+ * In Thymeleaf 3, TemplateResolver was replaced by AbstractConfigurableTemplateResolver.
+ * This resolver serves as a placeholder that can be configured via XML to support
+ * database-backed template resolution.
  * 
  * @author Andre Azzolini (apazzolini)
  */
-public class DatabaseTemplateResolver extends TemplateResolver {
-    
+public class DatabaseTemplateResolver extends AbstractConfigurableTemplateResolver {
+
+    @Override
+    protected ITemplateResource computeTemplateResource(
+            IEngineConfiguration configuration, String ownerTemplate,
+            String template, String resourceName, String characterEncoding,
+            Map<String, Object> templateResolutionAttributes) {
+        return new StringTemplateResource(resourceName);
+    }
+
 }

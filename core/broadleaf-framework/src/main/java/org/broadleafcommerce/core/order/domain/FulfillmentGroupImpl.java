@@ -143,19 +143,19 @@ public class FulfillmentGroupImpl implements FulfillmentGroup, CurrencyCodeIdent
     protected Long id;
 
     @Column(name = "REFERENCE_NUMBER")
-    @Index(name="FG_REFERENCE_INDEX", columnNames={"REFERENCE_NUMBER"})
+    @org.hibernate.annotations.Index(name="FG_REFERENCE_INDEX", columnNames={"REFERENCE_NUMBER"})
     @AdminPresentation(friendlyName = "FulfillmentGroupImpl_FG_Reference_Number", order=Presentation.FieldOrder.REFNUMBER,
             groupOrder = Presentation.Group.Order.General)
     protected String referenceNumber;
 
     @Column(name = "METHOD")
-    @Index(name="FG_METHOD_INDEX", columnNames={"METHOD"})
+    @org.hibernate.annotations.Index(name="FG_METHOD_INDEX", columnNames={"METHOD"})
     @AdminPresentation(excluded = true)
     @Deprecated
     protected String method;
     
     @Column(name = "SERVICE")
-    @Index(name="FG_SERVICE_INDEX", columnNames={"SERVICE"})
+    @org.hibernate.annotations.Index(name="FG_SERVICE_INDEX", columnNames={"SERVICE"})
     @AdminPresentation(excluded = true)
     @Deprecated
     protected String service;
@@ -221,7 +221,7 @@ public class FulfillmentGroupImpl implements FulfillmentGroup, CurrencyCodeIdent
     protected String deliveryInstruction;
 
     @Column(name = "IS_PRIMARY")
-    @Index(name="FG_PRIMARY_INDEX", columnNames={"IS_PRIMARY"})
+    @org.hibernate.annotations.Index(name="FG_PRIMARY_INDEX", columnNames={"IS_PRIMARY"})
     @AdminPresentation(friendlyName = "FulfillmentGroupImpl_Primary_FG", order=Presentation.FieldOrder.PRIMARY)
     protected boolean primary = false;
 
@@ -240,7 +240,7 @@ public class FulfillmentGroupImpl implements FulfillmentGroup, CurrencyCodeIdent
     protected BigDecimal total;
 
     @Column(name = "STATUS")
-    @Index(name="FG_STATUS_INDEX", columnNames={"STATUS"})
+    @org.hibernate.annotations.Index(name="FG_STATUS_INDEX", columnNames={"STATUS"})
     @AdminPresentation(friendlyName = "FulfillmentGroupImpl_FG_Status", order=Presentation.FieldOrder.STATUS,
             fieldType=SupportedFieldType.BROADLEAF_ENUMERATION,
             broadleafEnumeration="org.broadleafcommerce.core.order.service.type.FulfillmentGroupStatusType",
@@ -259,7 +259,7 @@ public class FulfillmentGroupImpl implements FulfillmentGroup, CurrencyCodeIdent
     
     @ManyToOne(targetEntity = OrderImpl.class, optional=false)
     @JoinColumn(name = "ORDER_ID")
-    @Index(name="FG_ORDER_INDEX", columnNames={"ORDER_ID"})
+    @org.hibernate.annotations.Index(name="FG_ORDER_INDEX", columnNames={"ORDER_ID"})
     @AdminPresentation(excluded = true)
     protected Order order;
     
@@ -268,7 +268,7 @@ public class FulfillmentGroupImpl implements FulfillmentGroup, CurrencyCodeIdent
 
     @ManyToOne(targetEntity = AddressImpl.class, cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
     @JoinColumn(name = "ADDRESS_ID")
-    @Index(name="FG_ADDRESS_INDEX", columnNames={"ADDRESS_ID"})
+    @org.hibernate.annotations.Index(name="FG_ADDRESS_INDEX", columnNames={"ADDRESS_ID"})
     protected Address address;
 
     /**
@@ -276,13 +276,13 @@ public class FulfillmentGroupImpl implements FulfillmentGroup, CurrencyCodeIdent
      */
     @ManyToOne(targetEntity = PhoneImpl.class, cascade = {CascadeType.PERSIST, CascadeType.MERGE, CascadeType.REFRESH})
     @JoinColumn(name = "PHONE_ID")
-    @Index(name="FG_PHONE_INDEX", columnNames={"PHONE_ID"})
+    @org.hibernate.annotations.Index(name="FG_PHONE_INDEX", columnNames={"PHONE_ID"})
     @Deprecated
     protected Phone phone;
     
     @ManyToOne(targetEntity = PersonalMessageImpl.class, cascade = { CascadeType.ALL })
     @JoinColumn(name = "PERSONAL_MESSAGE_ID")
-    @Index(name="FG_MESSAGE_INDEX", columnNames={"PERSONAL_MESSAGE_ID"})
+    @org.hibernate.annotations.Index(name="FG_MESSAGE_INDEX", columnNames={"PERSONAL_MESSAGE_ID"})
     protected PersonalMessage personalMessage;
     
     @OneToMany(mappedBy = "fulfillmentGroup", targetEntity = FulfillmentGroupItemImpl.class, cascade = CascadeType.ALL,

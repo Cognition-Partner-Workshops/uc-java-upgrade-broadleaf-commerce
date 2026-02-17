@@ -22,10 +22,6 @@ package org.broadleafcommerce.openadmin.server.service.persistence.module.criter
 import org.apache.commons.lang.StringUtils;
 import org.broadleafcommerce.common.util.dao.DynamicDaoHelper;
 import org.broadleafcommerce.common.util.dao.DynamicDaoHelperImpl;
-import org.hibernate.ejb.EntityManagerFactoryImpl;
-import org.hibernate.ejb.criteria.CriteriaBuilderImpl;
-import org.hibernate.ejb.criteria.path.PluralAttributePath;
-import org.hibernate.ejb.criteria.path.SingularAttributePath;
 import org.hibernate.internal.SessionFactoryImpl;
 
 import java.lang.reflect.Field;
@@ -34,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.persistence.Embeddable;
+import javax.persistence.EntityManagerFactory;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.From;
@@ -63,10 +60,10 @@ public class FieldPathBuilder {
             checkPiece: {
                 if (j == 0) {
                     Path path = root.get(piece);
-                    if (path instanceof PluralAttributePath) {
-                        associationPath.add(piece);
-                        break checkPiece;
-                    }
+                        if (path.getJavaType() != null && java.util.Collection.class.isAssignableFrom(path.getJavaType())) {
+                            associationPath.add(piece);
+                            break checkPiece;
+                        }
                 }
                 basicProperties.add(piece);
             }
@@ -99,9 +96,17 @@ public class FieldPathBuilder {
             String piece = myFieldPath.getTargetPropertyPieces().get(i);
             
             if (path.getJavaType().isAnnotationPresent(Embeddable.class)) {
-                String original = ((SingularAttributePath) path).getAttribute().getDeclaringType().getJavaType().getName() + "." + ((SingularAttributePath) path).getAttribute().getName() + "." + piece;
-                String copy = path.getJavaType().getName() + "." + piece;
-                copyCollectionPersister(original, copy, ((CriteriaBuilderImpl) builder).getEntityManagerFactory().getSessionFactory());
+                try {
+                    EntityManagerFactory emf = getEntityManagerFactory(builder);
+                    if (emf != null) {
+                        SessionFactoryImpl sf = emf.unwrap(SessionFactoryImpl.class);
+                        String original = path.getJavaType().getName() + "." + piece;
+                        String copy = path.getJavaType().getName() + "." + piece;
+                        copyCollectionPersister(original, copy, sf);
+                    }
+                } catch (Exception e) {
+                    // ignore - workaround may not be needed in Hibernate 5
+                }
             }
             
             try {
@@ -110,12 +115,13 @@ public class FieldPathBuilder {
                 // We weren't able to resolve the requested piece, likely because it's in a polymoprhic version
                 // of the path we're currently on. Let's see if there's any polymoprhic version of our class to
                 // use instead.
-        	    EntityManagerFactoryImpl em = ((CriteriaBuilderImpl) builder).getEntityManagerFactory();
-        	    Metamodel mm = em.getMetamodel();
+        	    EntityManagerFactory emf = getEntityManagerFactory(builder);
+        	    Metamodel mm = emf.getMetamodel();
         	    boolean found = false;
         	    
+        	    SessionFactoryImpl sf = emf.unwrap(SessionFactoryImpl.class);
         	    Class<?>[] polyClasses = dynamicDaoHelper.getAllPolymorphicEntitiesFromCeiling(
-        	            path.getJavaType(), em.getSessionFactory(), true, true);
+        	            path.getJavaType(), sf, true, true);
         	    
         	    for (Class<?> clazz : polyClasses) {
             		ManagedType mt = mm.managedType(clazz);
@@ -139,7 +145,7 @@ public class FieldPathBuilder {
         	    }
             }
             
-            if (path.getParentPath() != null && path.getParentPath().getJavaType().isAnnotationPresent(Embeddable.class) && path instanceof PluralAttributePath) {
+            if (path.getParentPath() != null && path.getParentPath().getJavaType().isAnnotationPresent(Embeddable.class) && java.util.Collection.class.isAssignableFrom(path.getJavaType())) {
                 //We need a workaround for this problem until it is resolved in Hibernate (loosely related to and likely resolved by https://hibernate.atlassian.net/browse/HHH-8802)
                 //We'll throw a specialized exception (and handle in an alternate flow for calls from BasicPersistenceModule)
                 throw new CriteriaConversionException(String.format("Unable to create a JPA criteria Path through an @Embeddable object to a collection that resides therein (%s)", fieldPath.getTargetProperty()), fieldPath);
@@ -158,6 +164,15 @@ public class FieldPathBuilder {
         }
 
         return path;
+    }
+
+    private EntityManagerFactory getEntityManagerFactory(CriteriaBuilder builder) {
+        try {
+            java.lang.reflect.Method m = builder.getClass().getMethod("getEntityManagerFactory");
+            return (EntityManagerFactory) m.invoke(builder);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     /**

@@ -52,7 +52,7 @@ public class SearchInterceptImpl implements SearchIntercept {
     protected Long id;
     
     @Column(name = "TERM")
-    @Index(name="SEARCHINTERCEPT_TERM_INDEX", columnNames={"TERM"})
+    @org.hibernate.annotations.Index(name="SEARCHINTERCEPT_TERM_INDEX", columnNames={"TERM"})
     private String term;
     
     @Column(name = "REDIRECT")

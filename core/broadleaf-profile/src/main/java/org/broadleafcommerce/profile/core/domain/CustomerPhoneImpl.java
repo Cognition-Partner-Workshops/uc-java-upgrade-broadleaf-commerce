@@ -74,7 +74,7 @@ public class CustomerPhoneImpl implements CustomerPhone{
 
     @ManyToOne(cascade = CascadeType.ALL, targetEntity = PhoneImpl.class, optional=false)
     @JoinColumn(name = "PHONE_ID")
-    @Index(name="CUSTPHONE_PHONE_INDEX", columnNames={"PHONE_ID"})
+    @org.hibernate.annotations.Index(name="CUSTPHONE_PHONE_INDEX", columnNames={"PHONE_ID"})
     protected Phone phone;
 
     @Override

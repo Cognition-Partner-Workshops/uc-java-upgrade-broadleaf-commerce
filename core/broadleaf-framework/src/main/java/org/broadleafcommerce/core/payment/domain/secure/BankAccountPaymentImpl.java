@@ -72,7 +72,7 @@ public class BankAccountPaymentImpl implements BankAccountPayment {
     protected Long id;
 
     @Column(name = "REFERENCE_NUMBER", nullable=false)
-    @Index(name="BANKACCOUNT_INDEX", columnNames={"REFERENCE_NUMBER"})
+    @org.hibernate.annotations.Index(name="BANKACCOUNT_INDEX", columnNames={"REFERENCE_NUMBER"})
     protected String referenceNumber;
 
     @Column(name = "ACCOUNT_NUMBER", nullable=false)

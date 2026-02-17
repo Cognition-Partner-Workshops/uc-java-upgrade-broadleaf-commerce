@@ -120,13 +120,13 @@ public class OrderPaymentImpl implements OrderPayment, CurrencyCodeIdentifiable 
 
     @ManyToOne(targetEntity = OrderImpl.class, optional = true)
     @JoinColumn(name = "ORDER_ID", nullable = true)
-    @Index(name="ORDERPAYMENT_ORDER_INDEX", columnNames={"ORDER_ID"})
+    @org.hibernate.annotations.Index(name="ORDERPAYMENT_ORDER_INDEX", columnNames={"ORDER_ID"})
     @AdminPresentation(excluded = true)
     protected Order order;
 
     @ManyToOne(targetEntity = AddressImpl.class, cascade = { CascadeType.PERSIST, CascadeType.MERGE })
     @JoinColumn(name = "ADDRESS_ID")
-    @Index(name="ORDERPAYMENT_ADDRESS_INDEX", columnNames={"ADDRESS_ID"})
+    @org.hibernate.annotations.Index(name="ORDERPAYMENT_ADDRESS_INDEX", columnNames={"ADDRESS_ID"})
     protected Address billingAddress;
 
     @Column(name = "AMOUNT", precision=19, scale=5)
@@ -135,12 +135,12 @@ public class OrderPaymentImpl implements OrderPayment, CurrencyCodeIdentifiable 
     protected BigDecimal amount;
 
     @Column(name = "REFERENCE_NUMBER")
-    @Index(name="ORDERPAYMENT_REFERENCE_INDEX", columnNames={"REFERENCE_NUMBER"})
+    @org.hibernate.annotations.Index(name="ORDERPAYMENT_REFERENCE_INDEX", columnNames={"REFERENCE_NUMBER"})
     @AdminPresentation(friendlyName = "OrderPaymentImpl_Payment_Reference_Number")
     protected String referenceNumber;
 
     @Column(name = "PAYMENT_TYPE", nullable = false)
-    @Index(name="ORDERPAYMENT_TYPE_INDEX", columnNames={"PAYMENT_TYPE"})
+    @org.hibernate.annotations.Index(name="ORDERPAYMENT_TYPE_INDEX", columnNames={"PAYMENT_TYPE"})
     @AdminPresentation(friendlyName = "OrderPaymentImpl_Payment_Type", order=3000, gridOrder = 3000, prominent=true,
             fieldType= SupportedFieldType.BROADLEAF_ENUMERATION,
             broadleafEnumeration="org.broadleafcommerce.common.payment.PaymentType")

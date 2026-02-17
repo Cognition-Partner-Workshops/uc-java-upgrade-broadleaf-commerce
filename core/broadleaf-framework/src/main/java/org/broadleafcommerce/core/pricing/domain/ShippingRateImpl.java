@@ -58,11 +58,11 @@ public class ShippingRateImpl implements ShippingRate {
     protected Long id;
 
     @Column(name = "FEE_TYPE", nullable=false)
-    @Index(name="SHIPPINGRATE_FEE_INDEX", columnNames={"FEE_TYPE"})
+    @org.hibernate.annotations.Index(name="SHIPPINGRATE_FEE_INDEX", columnNames={"FEE_TYPE"})
     protected String feeType;
 
     @Column(name = "FEE_SUB_TYPE")
-    @Index(name="SHIPPINGRATE_FEESUB_INDEX", columnNames={"FEE_SUB_TYPE"})
+    @org.hibernate.annotations.Index(name="SHIPPINGRATE_FEESUB_INDEX", columnNames={"FEE_SUB_TYPE"})
     protected String feeSubType;
 
     @Column(name = "FEE_BAND", nullable=false)

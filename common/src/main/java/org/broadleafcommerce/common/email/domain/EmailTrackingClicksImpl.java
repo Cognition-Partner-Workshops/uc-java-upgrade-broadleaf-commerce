@@ -59,14 +59,14 @@ public class EmailTrackingClicksImpl implements EmailTrackingClicks {
 
     @ManyToOne(optional=false, targetEntity = EmailTrackingImpl.class)
     @JoinColumn(name = "EMAIL_TRACKING_ID")
-    @Index(name="TRACKINGCLICKS_TRACKING_INDEX", columnNames={"EMAIL_TRACKING_ID"})
+    @org.hibernate.annotations.Index(name="TRACKINGCLICKS_TRACKING_INDEX", columnNames={"EMAIL_TRACKING_ID"})
     protected EmailTracking emailTracking;
 
     @Column(nullable=false, name = "DATE_CLICKED")
     protected Date dateClicked;
 
     @Column(name = "CUSTOMER_ID")
-    @Index(name="TRACKINGCLICKS_CUSTOMER_INDEX", columnNames={"CUSTOMER_ID"})
+    @org.hibernate.annotations.Index(name="TRACKINGCLICKS_CUSTOMER_INDEX", columnNames={"CUSTOMER_ID"})
     protected String customerId;
 
     @Column(name = "DESTINATION_URI")

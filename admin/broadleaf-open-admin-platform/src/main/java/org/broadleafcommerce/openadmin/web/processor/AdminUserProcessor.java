@@ -28,8 +28,8 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
-import org.thymeleaf.Arguments;
-import org.thymeleaf.dom.Element;
+import org.thymeleaf.context.ITemplateContext;
+import org.thymeleaf.model.IProcessableElementTag;
 
 import javax.annotation.Resource;
 
@@ -51,18 +51,13 @@ public class AdminUserProcessor extends AbstractModelVariableModifierProcessor {
     }
 
     @Override
-    protected void modifyModelAttributes(Arguments arguments, Element element) {
+    protected void modifyModelAttributes(ITemplateContext arguments, IProcessableElementTag element) {
         String resultVar = element.getAttributeValue("resultVar");
 
         AdminUser user = getPersistentAdminUser();
         if (user != null) {
             addToModel(arguments, resultVar, user);
         }
-    }
-
-    @Override
-    public int getPrecedence() {
-        return 10000;
     }
 
     protected AdminUser getPersistentAdminUser() {

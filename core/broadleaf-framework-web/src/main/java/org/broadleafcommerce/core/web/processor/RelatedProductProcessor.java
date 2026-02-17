@@ -28,8 +28,8 @@ import org.broadleafcommerce.core.catalog.domain.RelatedProductTypeEnum;
 import org.broadleafcommerce.core.catalog.domain.Sku;
 import org.broadleafcommerce.core.catalog.service.RelatedProductsService;
 import org.springframework.beans.factory.annotation.Value;
-import org.thymeleaf.Arguments;
-import org.thymeleaf.dom.Element;
+import org.thymeleaf.context.ITemplateContext;
+import org.thymeleaf.model.IProcessableElementTag;
 import org.thymeleaf.standard.expression.Expression;
 import org.thymeleaf.standard.expression.StandardExpressions;
 
@@ -77,15 +77,10 @@ public class RelatedProductProcessor extends AbstractModelVariableModifierProces
     }
     
     @Override
-    public int getPrecedence() {
-        return 10000;
-    }
-
-    @Override
     /**
      * Controller method for the processor that readies the service call and adds the results to the model.
      */
-    protected void modifyModelAttributes(Arguments arguments, Element element) {
+    protected void modifyModelAttributes(ITemplateContext arguments, IProcessableElementTag element) {
         RelatedProductDTO relatedProductDTO = buildDTO(arguments, element);
         List<? extends PromotableProduct> relatedProducts = relatedProductsService.findRelatedProducts(relatedProductDTO);
         if (useSku) {
@@ -145,7 +140,7 @@ public class RelatedProductProcessor extends AbstractModelVariableModifierProces
         return products;        
     }
     
-    private String getRelatedProductsResultVar(Element element) {
+    private String getRelatedProductsResultVar(IProcessableElementTag element) {
         String resultVar = element.getAttributeValue("relatedProductsResultVar");       
         if (resultVar == null) {
             resultVar = "relatedProducts";
@@ -153,7 +148,7 @@ public class RelatedProductProcessor extends AbstractModelVariableModifierProces
         return resultVar;
     }
     
-    private String getRelatedSkusResultVar(Element element) {
+    private String getRelatedSkusResultVar(IProcessableElementTag element) {
         String resultVar = element.getAttributeValue("relatedSkusResultVar");       
         if (resultVar == null) {
             resultVar = "relatedSkus";
@@ -161,7 +156,7 @@ public class RelatedProductProcessor extends AbstractModelVariableModifierProces
         return resultVar;
     }
     
-    private String getProductsResultVar(Element element) {
+    private String getProductsResultVar(IProcessableElementTag element) {
         String resultVar = element.getAttributeValue("productsResultVar");      
         if (resultVar == null) {
             resultVar = "products";
@@ -169,7 +164,7 @@ public class RelatedProductProcessor extends AbstractModelVariableModifierProces
         return resultVar;
     }
 
-    private RelatedProductDTO buildDTO(Arguments args, Element element) {
+    private RelatedProductDTO buildDTO(ITemplateContext args, IProcessableElementTag element) {
         RelatedProductDTO relatedProductDTO = new RelatedProductDTO();
         String productIdStr = element.getAttributeValue("productId"); 
         String categoryIdStr = element.getAttributeValue("categoryId"); 
@@ -178,41 +173,41 @@ public class RelatedProductProcessor extends AbstractModelVariableModifierProces
         
         if (productIdStr != null) {
             Expression expression = (Expression) StandardExpressions.getExpressionParser(args.getConfiguration())
-                    .parseExpression(args.getConfiguration(), args, productIdStr);
-            Object productId = expression.execute(args.getConfiguration(), args);
+                    .parseExpression(args, productIdStr);
+            Object productId = expression.execute(args);
             if (productId instanceof BigDecimal) {
-                productId = new Long(((BigDecimal) productId).toPlainString());
+                productId = Long.valueOf(((BigDecimal) productId).toPlainString());
             }
             relatedProductDTO.setProductId((Long) productId);
         }
         
         if (categoryIdStr != null) {
             Expression expression = (Expression) StandardExpressions.getExpressionParser(args.getConfiguration())
-                    .parseExpression(args.getConfiguration(), args, categoryIdStr);
-            Object categoryId = expression.execute(args.getConfiguration(), args);
+                    .parseExpression(args, categoryIdStr);
+            Object categoryId = expression.execute(args);
             if (categoryId instanceof BigDecimal) {
-                categoryId = new Long(((BigDecimal) categoryId).toPlainString());
+                categoryId = Long.valueOf(((BigDecimal) categoryId).toPlainString());
             }
             relatedProductDTO.setCategoryId((Long) categoryId);         
         }
         
         if (quantityStr != null) {
             Expression expression = (Expression) StandardExpressions.getExpressionParser(args.getConfiguration())
-                    .parseExpression(args.getConfiguration(), args, quantityStr);
-            Object quantityExp = expression.execute(args.getConfiguration(), args);
+                    .parseExpression(args, quantityStr);
+            Object quantityExp = expression.execute(args);
             int quantity = 0;
             if (quantityExp instanceof String) {
                 quantity = Integer.parseInt((String)quantityExp);
             } else {
-                quantity = ((BigDecimal)expression.execute(args.getConfiguration(), args)).intValue();
+                quantity = ((BigDecimal)expression.execute(args)).intValue();
             }
             relatedProductDTO.setQuantity(quantity);          
         }       
                 
         if (typeStr != null ) {
             Expression expression = (Expression) StandardExpressions.getExpressionParser(args.getConfiguration())
-                    .parseExpression(args.getConfiguration(), args, typeStr);
-            Object typeExp = expression.execute(args.getConfiguration(), args);
+                    .parseExpression(args, typeStr);
+            Object typeExp = expression.execute(args);
             if (typeExp instanceof String && RelatedProductTypeEnum.getInstance((String)typeExp) != null) {
                 relatedProductDTO.setType(RelatedProductTypeEnum.getInstance((String)typeExp));
             }

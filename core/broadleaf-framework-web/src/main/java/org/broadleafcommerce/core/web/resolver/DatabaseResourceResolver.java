@@ -22,8 +22,6 @@ package org.broadleafcommerce.core.web.resolver;
 import org.broadleafcommerce.common.extension.ExtensionResultHolder;
 import org.broadleafcommerce.common.extension.ExtensionResultStatusType;
 import org.springframework.stereotype.Service;
-import org.thymeleaf.TemplateProcessingParameters;
-import org.thymeleaf.resourceresolver.IResourceResolver;
 
 import java.io.InputStream;
 
@@ -31,15 +29,15 @@ import javax.annotation.Resource;
 
 
 /**
- * An implementation of {@link IResourceResolver} that provides an extension point for retrieving
- * templates from the database.
+ * A service that provides an extension point for retrieving templates from the database.
+ * In Thymeleaf 3, IResourceResolver was removed; this class now serves as a standalone service
+ * called by DatabaseTemplateResolver.
  * 
  * @author Andre Azzolini (apazzolini)
  */
 @Service("blDatabaseResourceResolver")
-public class DatabaseResourceResolver implements IResourceResolver {
+public class DatabaseResourceResolver {
     
-    @Override
     public String getName() {
         return "BL_DATABASE";
     }
@@ -47,10 +45,9 @@ public class DatabaseResourceResolver implements IResourceResolver {
     @Resource(name = "blDatabaseResourceResolverExtensionManager")
     protected DatabaseResourceResolverExtensionManager extensionManager;
 
-    @Override
-    public InputStream getResourceAsStream(TemplateProcessingParameters params, String resourceName) {
+    public InputStream getResourceAsStream(String resourceName) {
         ExtensionResultHolder erh = new ExtensionResultHolder();
-        ExtensionResultStatusType result = extensionManager.getProxy().resolveResource(erh, params, resourceName);
+        ExtensionResultStatusType result = extensionManager.getProxy().resolveResource(erh, resourceName);
         if (result ==  ExtensionResultStatusType.HANDLED) {
             return (InputStream) erh.getContextMap().get(DatabaseResourceResolverExtensionHandler.IS_KEY);
         }

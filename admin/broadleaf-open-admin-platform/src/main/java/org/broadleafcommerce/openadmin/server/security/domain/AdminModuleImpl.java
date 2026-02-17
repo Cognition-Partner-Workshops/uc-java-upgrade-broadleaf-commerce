@@ -70,7 +70,7 @@ public class AdminModuleImpl implements AdminModule {
     protected Long id;
 
     @Column(name = "NAME", nullable=false)
-    @Index(name="ADMINMODULE_NAME_INDEX", columnNames={"NAME"})
+    @org.hibernate.annotations.Index(name="ADMINMODULE_NAME_INDEX", columnNames={"NAME"})
     @AdminPresentation(friendlyName = "AdminModuleImpl_Name", order=1, group = "AdminModuleImpl_Module", prominent=true)
     protected String name;
 

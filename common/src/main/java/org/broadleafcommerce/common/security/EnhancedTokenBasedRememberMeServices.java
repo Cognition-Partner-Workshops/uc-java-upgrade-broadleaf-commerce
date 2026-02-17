@@ -51,7 +51,14 @@ public class EnhancedTokenBasedRememberMeServices extends TokenBasedRememberMeSe
     protected CookieUtils cookieUtils;
 
     @Deprecated
-    public EnhancedTokenBasedRememberMeServices() {}
+    public EnhancedTokenBasedRememberMeServices() {
+        super("broadleaf-remember-me-default-key", new UserDetailsService() {
+            @Override
+            public org.springframework.security.core.userdetails.UserDetails loadUserByUsername(String username) {
+                return null;
+            }
+        });
+    }
     
     public EnhancedTokenBasedRememberMeServices(String key, UserDetailsService userDetailsService) {
         super(key, userDetailsService);
@@ -200,6 +207,25 @@ public class EnhancedTokenBasedRememberMeServices extends TokenBasedRememberMeSe
         public void setLocale(Locale arg0) {
             //do nothing
         }
-        
+
+        public String getHeader(String name) {
+            return null;
+        }
+
+        public java.util.Collection<String> getHeaders(String name) {
+            return java.util.Collections.emptyList();
+        }
+
+        public java.util.Collection<String> getHeaderNames() {
+            return java.util.Collections.emptyList();
+        }
+
+        public int getStatus() {
+            return 0;
+        }
+
+        public void setContentLengthLong(long len) {
+            //do nothing
+        }
     }
 }

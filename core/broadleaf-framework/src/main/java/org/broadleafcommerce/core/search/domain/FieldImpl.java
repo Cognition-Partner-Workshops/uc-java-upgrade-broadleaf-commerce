@@ -83,7 +83,7 @@ public class FieldImpl implements Field, Serializable, AdminMainEntity {
     // This is a broadleaf enumeration
     @AdminPresentation(friendlyName = "FieldImpl_EntityType", group = "FieldImpl_descrpition", order = 2, prominent = true)
     @Column(name = "ENTITY_TYPE", nullable = false)
-    @Index(name="ENTITY_TYPE_INDEX", columnNames={"ENTITY_TYPE"})
+    @org.hibernate.annotations.Index(name="ENTITY_TYPE_INDEX", columnNames={"ENTITY_TYPE"})
     protected String entityType;
     
     @Column(name = "FRIENDLY_NAME")

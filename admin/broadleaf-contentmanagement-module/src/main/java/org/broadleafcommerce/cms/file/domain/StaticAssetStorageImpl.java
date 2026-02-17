@@ -58,7 +58,7 @@ public class StaticAssetStorageImpl implements StaticAssetStorage {
     protected Long id;
 
     @Column(name ="STATIC_ASSET_ID", nullable = false)
-    @Index(name="STATIC_ASSET_ID_INDEX", columnNames={"STATIC_ASSET_ID"})
+    @org.hibernate.annotations.Index(name="STATIC_ASSET_ID_INDEX", columnNames={"STATIC_ASSET_ID"})
     protected Long staticAssetId;
 
     @Column (name = "FILE_DATA", length = Integer.MAX_VALUE - 1)

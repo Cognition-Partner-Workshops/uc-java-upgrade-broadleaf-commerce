@@ -136,7 +136,7 @@ public class PageImpl implements Page, AdminMainEntity, Locatable, ProfileEntity
     protected String description;
 
     @Column (name = "FULL_URL")
-    @Index(name="PAGE_FULL_URL_INDEX", columnNames={"FULL_URL"})
+    @org.hibernate.annotations.Index(name="PAGE_FULL_URL_INDEX", columnNames={"FULL_URL"})
     @AdminPresentation(friendlyName = "PageImpl_Full_Url", order = 3000, 
         group = Presentation.Group.Name.Basic, groupOrder = Presentation.Group.Order.Basic,
         prominent = true, gridOrder = 2,

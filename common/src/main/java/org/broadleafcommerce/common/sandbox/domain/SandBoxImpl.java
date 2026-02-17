@@ -79,7 +79,7 @@ public class SandBoxImpl implements SandBox, AdminMainEntity {
     protected Long id;
     
     @Column(name = "SANDBOX_NAME")
-    @Index(name="SANDBOX_NAME_INDEX", columnNames={"SANDBOX_NAME"})
+    @org.hibernate.annotations.Index(name="SANDBOX_NAME_INDEX", columnNames={"SANDBOX_NAME"})
     @AdminPresentation(friendlyName = "SandBoxImpl_Name", group = "SandBoxImpl_Description", prominent = true, 
             gridOrder = 2000, order = 1000,
             validationConfigurations = { @ValidationConfiguration(validationImplementation = "blSandBoxNameValidator") })

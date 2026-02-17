@@ -24,8 +24,8 @@ import org.broadleafcommerce.common.breadcrumbs.service.BreadcrumbService;
 import org.broadleafcommerce.common.web.BroadleafRequestContext;
 import org.broadleafcommerce.common.web.dialect.AbstractModelVariableModifierProcessor;
 import org.springframework.util.CollectionUtils;
-import org.thymeleaf.Arguments;
-import org.thymeleaf.dom.Element;
+import org.thymeleaf.context.ITemplateContext;
+import org.thymeleaf.model.IProcessableElementTag;
 
 import java.util.HashMap;
 import java.util.List;
@@ -51,12 +51,7 @@ public class BreadcrumbProcessor extends AbstractModelVariableModifierProcessor 
     }
 
     @Override
-    public int getPrecedence() {
-        return 1000;
-    }
-
-    @Override
-    protected void modifyModelAttributes(Arguments arguments, Element element) {
+    protected void modifyModelAttributes(ITemplateContext arguments, IProcessableElementTag element) {
         String baseUrl = getBaseUrl(arguments, element);
         Map<String, String[]> params = getParams(arguments, element);
         List<BreadcrumbDTO> dtos = breadcrumbService.buildBreadcrumbDTOs(baseUrl, params);
@@ -71,7 +66,7 @@ public class BreadcrumbProcessor extends AbstractModelVariableModifierProcessor 
         }
     }
 
-    protected String getBaseUrl(Arguments arguments, Element element) {
+    protected String getBaseUrl(ITemplateContext arguments, IProcessableElementTag element) {
         BroadleafRequestContext brc = BroadleafRequestContext.getBroadleafRequestContext();
 
         if (brc != null) {
@@ -80,7 +75,7 @@ public class BreadcrumbProcessor extends AbstractModelVariableModifierProcessor 
         return "";
     }
 
-    protected Map<String, String[]> getParams(Arguments arguments, Element element) {
+    protected Map<String, String[]> getParams(ITemplateContext arguments, IProcessableElementTag element) {
         Map<String, String[]> paramMap = new HashMap<String, String[]>();
         BroadleafRequestContext brc = BroadleafRequestContext.getBroadleafRequestContext();
 

@@ -63,7 +63,7 @@ public class RatingDetailImpl implements RatingDetail {
 
     @ManyToOne(targetEntity = CustomerImpl.class, optional = false)
     @JoinColumn(name = "CUSTOMER_ID")
-    @Index(name="RATING_CUSTOMER_INDEX", columnNames={"CUSTOMER_ID"})
+    @org.hibernate.annotations.Index(name="RATING_CUSTOMER_INDEX", columnNames={"CUSTOMER_ID"})
     protected Customer customer;
 
     @ManyToOne(optional = false, targetEntity = RatingSummaryImpl.class)

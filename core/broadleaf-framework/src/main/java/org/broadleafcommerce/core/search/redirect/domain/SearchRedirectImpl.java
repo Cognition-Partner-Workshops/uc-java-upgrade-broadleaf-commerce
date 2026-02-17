@@ -92,7 +92,7 @@ public class SearchRedirectImpl implements SearchRedirect, java.io.Serializable 
 
     /** The active end date. */
     @Column(name = "ACTIVE_END_DATE")
-    @Index(name="SEARCH_ACTIVE_INDEX", columnNames={"ACTIVE_START_DATE","ACTIVE_END_DATE"})
+    @org.hibernate.annotations.Index(name="SEARCH_ACTIVE_INDEX", columnNames={"ACTIVE_START_DATE","ACTIVE_END_DATE"})
     @AdminPresentation(friendlyName = "SkuImpl_Sku_End_Date", order = 4000, group = "SearchRedirectImpl_description", tooltip = "skuEndDateTooltip", groupOrder = 1)
     protected Date activeEndDate;
     

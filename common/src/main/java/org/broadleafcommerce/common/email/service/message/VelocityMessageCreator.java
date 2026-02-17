@@ -22,7 +22,6 @@ package org.broadleafcommerce.common.email.service.message;
 import org.apache.velocity.app.VelocityEngine;
 import org.broadleafcommerce.common.email.service.info.EmailInfo;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.ui.velocity.VelocityEngineUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -51,7 +50,14 @@ public class VelocityMessageCreator extends MessageCreator {
             if (additionalConfigItems != null) {
                 propsCopy.putAll(additionalConfigItems);
             }
-            return VelocityEngineUtils.mergeTemplateIntoString(velocityEngine, info.getEmailTemplate(), info.getEncoding(), propsCopy);
+            try {
+                org.apache.velocity.VelocityContext velocityContext = new org.apache.velocity.VelocityContext(propsCopy);
+                java.io.StringWriter writer = new java.io.StringWriter();
+                velocityEngine.mergeTemplate(info.getEmailTemplate(), info.getEncoding(), velocityContext, writer);
+                return writer.toString();
+            } catch (Exception e) {
+                throw new RuntimeException("Unable to merge Velocity template", e);
+            }
         }
 
         throw new IllegalArgumentException("Property map must be of type HashMap<String, Object>");

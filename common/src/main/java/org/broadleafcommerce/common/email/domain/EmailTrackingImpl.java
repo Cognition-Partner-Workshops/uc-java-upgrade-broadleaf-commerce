@@ -59,7 +59,7 @@ public class EmailTrackingImpl implements EmailTracking {
     protected Long id;
 
     @Column(name = "EMAIL_ADDRESS")
-    @Index(name="EMAILTRACKING_INDEX", columnNames={"EMAIL_ADDRESS"})
+    @org.hibernate.annotations.Index(name="EMAILTRACKING_INDEX", columnNames={"EMAIL_ADDRESS"})
     protected String emailAddress;
 
     @Column(name = "DATE_SENT")

@@ -70,7 +70,7 @@ public class PageAttributeImpl implements PageAttribute, ProfileEntity {
     protected Long id;
     
     @Column(name = "FIELD_NAME", nullable = false)
-    @Index(name="PAGEATTRIBUTE_NAME_INDEX", columnNames = { "NAME" })
+    @org.hibernate.annotations.Index(name="PAGEATTRIBUTE_NAME_INDEX", columnNames = { "NAME" })
     @AdminPresentation(visibility = VisibilityEnum.HIDDEN_ALL)
     protected String name;
 
@@ -79,7 +79,7 @@ public class PageAttributeImpl implements PageAttribute, ProfileEntity {
 
     @ManyToOne(targetEntity = PageImpl.class, optional = false, cascade = CascadeType.REFRESH)
     @JoinColumn(name = "PAGE_ID")
-    @Index(name="PAGEATTRIBUTE_INDEX", columnNames = { "PAGE_ID" })
+    @org.hibernate.annotations.Index(name="PAGEATTRIBUTE_INDEX", columnNames = { "PAGE_ID" })
     protected Page page;
     
     @Override

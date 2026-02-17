@@ -19,36 +19,36 @@
  */
 package org.broadleafcommerce.common.web;
 
-import org.thymeleaf.TemplateProcessingParameters;
-import org.thymeleaf.templateresolver.ITemplateResolver;
-import org.thymeleaf.templateresolver.TemplateResolution;
+import org.thymeleaf.IEngineConfiguration;
+import org.thymeleaf.templatemode.TemplateMode;
+import org.thymeleaf.templateresolver.AbstractTemplateResolver;
+import org.thymeleaf.templateresource.ITemplateResource;
+import org.thymeleaf.cache.ICacheEntryValidity;
+import org.thymeleaf.cache.NonCacheableCacheEntryValidity;
 
-/**
- * Placeholder component to support a custom TemplateResolver.
- * 
- * Utilized by the Broadleaf Commerce CustomTemplate extension to introduce themes at the DB level.
- *
- * @author bpolster
- */
-public class NullBroadleafTemplateResolver implements ITemplateResolver {
+import java.util.Map;
 
-    @Override
-    public String getName() {
-        return "NullBroadleafTemplateResolver";
+public class NullBroadleafTemplateResolver extends AbstractTemplateResolver {
+
+    public NullBroadleafTemplateResolver() {
+        setOrder(9999);
     }
 
     @Override
-    public Integer getOrder() {
-        return 9999;
-    }
-
-    @Override
-    public TemplateResolution resolveTemplate(TemplateProcessingParameters templateProcessingParameters) {
+    protected ITemplateResource computeTemplateResource(IEngineConfiguration configuration, String ownerTemplate,
+                                                         String template, Map<String, Object> templateResolutionAttributes) {
         return null;
     }
 
     @Override
-    public void initialize() {
+    protected TemplateMode computeTemplateMode(IEngineConfiguration configuration, String ownerTemplate,
+                                                String template, Map<String, Object> templateResolutionAttributes) {
+        return null;
+    }
 
+    @Override
+    protected ICacheEntryValidity computeValidity(IEngineConfiguration configuration, String ownerTemplate,
+                                                   String template, Map<String, Object> templateResolutionAttributes) {
+        return NonCacheableCacheEntryValidity.INSTANCE;
     }
 }

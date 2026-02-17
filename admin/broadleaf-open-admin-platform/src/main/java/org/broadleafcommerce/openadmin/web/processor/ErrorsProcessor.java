@@ -32,31 +32,22 @@ import org.springframework.stereotype.Component;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
-import org.springframework.web.servlet.support.BindStatus;
-import org.thymeleaf.Arguments;
-import org.thymeleaf.dom.Element;
-import org.thymeleaf.processor.ProcessorResult;
-import org.thymeleaf.processor.attr.AbstractAttrProcessor;
-import org.thymeleaf.spring4.util.FieldUtils;
+import org.thymeleaf.context.ITemplateContext;
+import org.thymeleaf.engine.AttributeName;
+import org.thymeleaf.model.IProcessableElementTag;
+import org.thymeleaf.processor.element.AbstractAttributeTagProcessor;
+import org.thymeleaf.processor.element.IElementTagStructureHandler;
+import org.thymeleaf.spring5.context.IThymeleafBindStatus;
+import org.thymeleaf.spring5.util.FieldUtils;
+import org.thymeleaf.templatemode.TemplateMode;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Processor that returns all the errors within an {@link EntityForm} organized by tab, according to the expression passed
- * in as an argument.
- * 
- * For instance, if you would like to get all of the errors for the {@link EntityForm}, invoke this processor with an
- * attribute that looks like:
- * 
- *      blc_admin:errors="*{*}"
- *
- * @author Phillip Verheyden (phillipuniverse)
- */
 @Component("blErrorsProcessor")
-public class ErrorsProcessor extends AbstractAttrProcessor {
+public class ErrorsProcessor extends AbstractAttributeTagProcessor {
 
     protected static final Log LOG = LogFactory.getLog(ErrorsProcessor.class);
 
@@ -64,28 +55,20 @@ public class ErrorsProcessor extends AbstractAttrProcessor {
     public static final String GENERAL_ERROR_FIELD_KEY = "generalError";
 
     public ErrorsProcessor() {
-        super("errors");
+        super(TemplateMode.HTML, "blc_admin", null, false, "errors", true, 10000, true);
     }
 
     @Override
-    public int getPrecedence() {
-        return 10000;
-    }
+    protected void doProcess(ITemplateContext context, IProcessableElementTag tag, AttributeName attributeName,
+                             String attributeValue, IElementTagStructureHandler structureHandler) {
 
-    @Override
-    protected ProcessorResult processAttribute(Arguments arguments, Element element, String attributeName) {
-        String attributeValue = element.getAttributeValue(attributeName);
-
-        BindStatus bindStatus = FieldUtils.getBindStatus(arguments.getConfiguration(), arguments, attributeValue);
+        IThymeleafBindStatus bindStatus = FieldUtils.getBindStatus(context, attributeValue);
 
         if (bindStatus.isError()) {
             EntityForm form = (EntityForm) ((BindingResult) bindStatus.getErrors()).getTarget();
 
-            // Map of tab name -> (Map field Name -> list of error messages)
             Map<String, Map<String, List<String>>> result = new HashMap<String, Map<String, List<String>>>();
             for (FieldError err : bindStatus.getErrors().getFieldErrors()) {
-                //attempt to look up which tab the field error is on. If it can't be found, just use
-                //the default tab for the group
                 String tabName = EntityForm.DEFAULT_TAB_NAME;
                 Tab tab = form.findTabForField(err.getField());
                 if (tab != null) {
@@ -98,7 +81,6 @@ public class ErrorsProcessor extends AbstractAttrProcessor {
                     result.put(tabName, tabErrors);
                 }
                 if (err.getField().contains(DynamicEntityFormInfo.FIELD_SEPARATOR)) {
-                    //at this point the field name actually occurs within some array syntax
                     String fieldName = extractFieldName(err);
                     String[] fieldInfo = fieldName.split("\\" + DynamicEntityFormInfo.FIELD_SEPARATOR);
                     Field formField = form.getDynamicForm(fieldInfo[0]).getFields().get(fieldName);
@@ -119,20 +101,16 @@ public class ErrorsProcessor extends AbstractAttrProcessor {
                             addFieldError(err.getField(), err.getCode(), tabErrors);
                         }
                     } else {
-                        //this is the code that is executed when a Translations add action contains errors
-                        //this branch of the code just puts a placeholder "tabErrors", to avoid errprProcessor parsing errors, and
-                        //avoids checking on tabs, fieldGroups or fields (which for translations are empty), thus skipping any warning
-                        Map<String, Object> localVariables = new HashMap<String, Object>();
-                        localVariables.put("tabErrors", tabErrors);
-                        return ProcessorResult.setLocalVariables(localVariables);
+                        structureHandler.setLocalVariable("tabErrors", tabErrors);
+                        return;
                     }
                 }
             }
 
             String translatedGeneralTab = GENERAL_ERRORS_TAB_KEY;
-            BroadleafRequestContext context = BroadleafRequestContext.getBroadleafRequestContext();
-            if (context != null && context.getMessageSource() != null) {
-                translatedGeneralTab = context.getMessageSource().getMessage(translatedGeneralTab, null, translatedGeneralTab, context.getJavaLocale());
+            BroadleafRequestContext blcContext = BroadleafRequestContext.getBroadleafRequestContext();
+            if (blcContext != null && blcContext.getMessageSource() != null) {
+                translatedGeneralTab = blcContext.getMessageSource().getMessage(translatedGeneralTab, null, translatedGeneralTab, blcContext.getJavaLocale());
             }
 
             for (ObjectError err : bindStatus.getErrors().getGlobalErrors()) {
@@ -144,12 +122,8 @@ public class ErrorsProcessor extends AbstractAttrProcessor {
                 addFieldError(GENERAL_ERROR_FIELD_KEY, err.getCode(), tabErrors);
             }
 
-            Map<String, Object> localVariables = new HashMap<String, Object>();
-            localVariables.put("tabErrors", result);
-            return ProcessorResult.setLocalVariables(localVariables);
+            structureHandler.setLocalVariable("tabErrors", result);
         }
-        return ProcessorResult.OK;
-
     }
 
     private String extractFieldName(FieldError err) {

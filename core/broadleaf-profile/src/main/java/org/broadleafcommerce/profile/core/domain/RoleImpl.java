@@ -56,7 +56,7 @@ public class RoleImpl implements Role {
     protected Long id;
 
     @Column(name = "ROLE_NAME", nullable = false)
-    @Index(name="ROLE_NAME_INDEX", columnNames={"ROLE_NAME"})
+    @org.hibernate.annotations.Index(name="ROLE_NAME_INDEX", columnNames={"ROLE_NAME"})
     @AdminPresentation(friendlyName = "rolesTitle",prominent = true)
     protected String roleName;
 

@@ -77,7 +77,7 @@ public class CategoryAttributeImpl implements CategoryAttribute {
     protected Long id;
     
     @Column(name = "NAME", nullable=false)
-    @Index(name="CATEGORYATTRIBUTE_NAME_INDEX", columnNames={"NAME"})
+    @org.hibernate.annotations.Index(name="CATEGORYATTRIBUTE_NAME_INDEX", columnNames={"NAME"})
     @AdminPresentation(visibility = VisibilityEnum.HIDDEN_ALL)
     protected String name;
 
@@ -91,7 +91,7 @@ public class CategoryAttributeImpl implements CategoryAttribute {
     
     @ManyToOne(targetEntity = CategoryImpl.class, optional=false, cascade = CascadeType.REFRESH)
     @JoinColumn(name = "CATEGORY_ID")
-    @Index(name="CATEGORYATTRIBUTE_INDEX", columnNames={"CATEGORY_ID"})
+    @org.hibernate.annotations.Index(name="CATEGORYATTRIBUTE_INDEX", columnNames={"CATEGORY_ID"})
     protected Category category;
 
     @Override

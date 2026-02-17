@@ -59,7 +59,7 @@ public class AdminUserAttributeImpl implements AdminUserAttribute {
     protected Long id;
     
     @Column(name = "FIELD_NAME", nullable = false)
-    @Index(name="ADMINUSERATTRIBUTE_NAME_INDEX", columnNames = { "NAME" })
+    @org.hibernate.annotations.Index(name="ADMINUSERATTRIBUTE_NAME_INDEX", columnNames = { "NAME" })
     @AdminPresentation(visibility = VisibilityEnum.HIDDEN_ALL)
     protected String name;
 
@@ -68,7 +68,7 @@ public class AdminUserAttributeImpl implements AdminUserAttribute {
 
     @ManyToOne(targetEntity = AdminUserImpl.class, optional = false)
     @JoinColumn(name = "ADMIN_USER_ID")
-    @Index(name="ADMINUSERATTRIBUTE_INDEX", columnNames = { "ADMIN_USER_ID" })
+    @org.hibernate.annotations.Index(name="ADMINUSERATTRIBUTE_INDEX", columnNames = { "ADMIN_USER_ID" })
     protected AdminUser adminUser;
     
     @Override

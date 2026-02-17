@@ -69,7 +69,7 @@ public class GiftCardPaymentImpl implements GiftCardPayment {
     protected Long id;
 
     @Column(name = "REFERENCE_NUMBER", nullable = false)
-    @Index(name="GIFTCARD_INDEX", columnNames={"REFERENCE_NUMBER"})
+    @org.hibernate.annotations.Index(name="GIFTCARD_INDEX", columnNames={"REFERENCE_NUMBER"})
     protected String referenceNumber;
 
     @Column(name = "PAN", nullable = false)

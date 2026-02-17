@@ -175,7 +175,7 @@ public class CategoryImpl implements Category, Status, AdminMainEntity, Locatabl
     protected Long id;
 
     @Column(name = "NAME", nullable=false)
-    @Index(name="CATEGORY_NAME_INDEX", columnNames={"NAME"})
+    @org.hibernate.annotations.Index(name="CATEGORY_NAME_INDEX", columnNames={"NAME"})
     @AdminPresentation(friendlyName = "CategoryImpl_Category_Name", order = 1000,
             group = Presentation.Group.Name.General, groupOrder = Presentation.Group.Order.General,
             prominent = true, gridOrder = 1, columnWidth = "300px",
@@ -187,7 +187,7 @@ public class CategoryImpl implements Category, Status, AdminMainEntity, Locatabl
             group = Presentation.Group.Name.General, groupOrder = Presentation.Group.Order.General,
             prominent = true, gridOrder = 2, columnWidth = "300px",
             validationConfigurations = { @ValidationConfiguration(validationImplementation = "blUriPropertyValidator") })
-    @Index(name="CATEGORY_URL_INDEX", columnNames={"URL"})
+    @org.hibernate.annotations.Index(name="CATEGORY_URL_INDEX", columnNames={"URL"})
     protected String url;
 
     @Column(name = "OVERRIDE_GENERATED_URL")
@@ -196,14 +196,14 @@ public class CategoryImpl implements Category, Status, AdminMainEntity, Locatabl
     protected Boolean overrideGeneratedUrl = false;
 
     @Column(name = "EXTERNAL_ID")
-    @Index(name="CATEGORY_E_ID_INDEX", columnNames={"EXTERNAL_ID"})
+    @org.hibernate.annotations.Index(name="CATEGORY_E_ID_INDEX", columnNames={"EXTERNAL_ID"})
     @AdminPresentation(friendlyName = "CategoryImpl_Category_ExternalID",
             tab = Presentation.Tab.Name.Advanced, tabOrder = Presentation.Tab.Order.Advanced,
             group = Presentation.Group.Name.Advanced, groupOrder = Presentation.Group.Order.Advanced)
     protected String externalId;
 
     @Column(name = "URL_KEY")
-    @Index(name="CATEGORY_URLKEY_INDEX", columnNames={"URL_KEY"})
+    @org.hibernate.annotations.Index(name="CATEGORY_URLKEY_INDEX", columnNames={"URL_KEY"})
     @AdminPresentation(friendlyName = "CategoryImpl_Category_Url_Key",
             tab = Presentation.Tab.Name.Advanced, tabOrder = Presentation.Tab.Order.Advanced,
             group = Presentation.Group.Name.Advanced, groupOrder = Presentation.Group.Order.Advanced,
@@ -260,7 +260,7 @@ public class CategoryImpl implements Category, Status, AdminMainEntity, Locatabl
 
     @ManyToOne(targetEntity = CategoryImpl.class)
     @JoinColumn(name = "DEFAULT_PARENT_CATEGORY_ID")
-    @Index(name="CATEGORY_PARENT_INDEX", columnNames={"DEFAULT_PARENT_CATEGORY_ID"})
+    @org.hibernate.annotations.Index(name="CATEGORY_PARENT_INDEX", columnNames={"DEFAULT_PARENT_CATEGORY_ID"})
     @AdminPresentation(friendlyName = "CategoryImpl_defaultParentCategory", order = 4000,
             group = Presentation.Group.Name.General, groupOrder = Presentation.Group.Order.General)
     @AdminPresentationToOneLookup()

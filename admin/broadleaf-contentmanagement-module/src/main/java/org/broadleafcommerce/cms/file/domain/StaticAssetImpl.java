@@ -104,7 +104,7 @@ public class StaticAssetImpl implements StaticAsset, AdminMainEntity {
             requiredOverride = RequiredOverride.REQUIRED,
             fieldType = SupportedFieldType.ASSET_URL,
             prominent = true)
-    @Index(name="ASST_FULL_URL_INDX", columnNames={"FULL_URL"})
+    @org.hibernate.annotations.Index(name="ASST_FULL_URL_INDX", columnNames={"FULL_URL"})
     protected String fullUrl;
 
     @Column(name = "TITLE", nullable = true)

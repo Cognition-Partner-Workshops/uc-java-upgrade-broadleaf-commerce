@@ -53,7 +53,7 @@ public class StateImpl implements State {
     protected String abbreviation;
 
     @Column(name = "NAME", nullable = false)
-    @Index(name="STATE_NAME_INDEX", columnNames={"NAME"})
+    @org.hibernate.annotations.Index(name="STATE_NAME_INDEX", columnNames={"NAME"})
     @AdminPresentation(friendlyName = "StateImpl_State", order=9, group = "StateImpl_Address", prominent = true)
     protected String name;
 

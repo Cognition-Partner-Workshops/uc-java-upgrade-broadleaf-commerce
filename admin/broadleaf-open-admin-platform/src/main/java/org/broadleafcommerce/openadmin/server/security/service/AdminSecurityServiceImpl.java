@@ -46,7 +46,6 @@ import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.authentication.dao.SaltSource;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -92,7 +91,7 @@ public class AdminSecurityServiceImpl implements AdminSecurityService {
      * @deprecated Spring Security has deprecated this encoder interface, this will be removed in 4.2
      */
     @Deprecated
-    protected org.springframework.security.authentication.encoding.PasswordEncoder passwordEncoder;
+    protected Object passwordEncoder;
 
     /**
      * <p>Set by {@link #setupPasswordEncoder()} if the blPasswordEncoder bean provided is the new version.
@@ -122,7 +121,7 @@ public class AdminSecurityServiceImpl implements AdminSecurityService {
     @Deprecated
     @Autowired(required=false)
     @Qualifier("blAdminSaltSource")
-    protected SaltSource saltSource;
+    protected Object saltSource;
     
     @Resource(name="blEmailService")
     protected EmailService emailService;
@@ -149,8 +148,6 @@ public class AdminSecurityServiceImpl implements AdminSecurityService {
         passwordEncoder = null;
         if (passwordEncoderBean instanceof PasswordEncoder) {
             passwordEncoderNew = (PasswordEncoder) passwordEncoderBean;
-        } else if (passwordEncoderBean instanceof org.springframework.security.authentication.encoding.PasswordEncoder) {
-            passwordEncoder = (org.springframework.security.authentication.encoding.PasswordEncoder) passwordEncoderBean;
         } else {
             throw new NoSuchBeanDefinitionException("No PasswordEncoder bean is defined");
         }
@@ -479,11 +476,7 @@ public class AdminSecurityServiceImpl implements AdminSecurityService {
     @Deprecated
     @Override
     public Object getSalt(AdminUser user, String unencodedPassword) {
-        Object salt = null;
-        if (saltSource != null) {
-            salt = saltSource.getSalt(new AdminUserDetails(user.getId(), user.getLogin(), unencodedPassword, new ArrayList<GrantedAuthority>()));
-        }
-        return salt;
+        return null;
     }
 
     @Deprecated
@@ -500,13 +493,13 @@ public class AdminSecurityServiceImpl implements AdminSecurityService {
 
     @Deprecated
     @Override
-    public SaltSource getSaltSource() {
+    public Object getSaltSource() {
         return saltSource;
     }
 
     @Deprecated
     @Override
-    public void setSaltSource(SaltSource saltSource) {
+    public void setSaltSource(Object saltSource) {
         this.saltSource = saltSource;
     }
 
@@ -554,11 +547,7 @@ public class AdminSecurityServiceImpl implements AdminSecurityService {
      */
     @Deprecated
     protected boolean isPasswordValid(String encodedPassword, String rawPassword, Object salt) {
-        if (usingDeprecatedPasswordEncoder()) {
-            return passwordEncoder.isPasswordValid(encodedPassword, rawPassword, salt);
-        } else {
-            return isPasswordValid(encodedPassword, rawPassword);
-        }
+        return isPasswordValid(encodedPassword, rawPassword);
     }
 
     /**
@@ -592,11 +581,7 @@ public class AdminSecurityServiceImpl implements AdminSecurityService {
      */
     @Deprecated
     protected String encodePassword(String rawPassword, Object salt) {
-        if (usingDeprecatedPasswordEncoder()) {
-            return passwordEncoder.encodePassword(rawPassword, salt);
-        } else {
-            return encodePassword(rawPassword);
-        }
+        return encodePassword(rawPassword);
     }
 
     /**
@@ -616,6 +601,6 @@ public class AdminSecurityServiceImpl implements AdminSecurityService {
 
     @Deprecated
     protected boolean usingDeprecatedPasswordEncoder() {
-        return passwordEncoder != null;
+        return false;
     }
 }

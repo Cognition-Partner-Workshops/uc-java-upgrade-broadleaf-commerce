@@ -96,14 +96,14 @@ public class OfferCodeImpl implements OfferCode {
 
     @ManyToOne(targetEntity = OfferImpl.class, optional=false, cascade = CascadeType.REFRESH)
     @JoinColumn(name = "OFFER_ID")
-    @Index(name="OFFERCODE_OFFER_INDEX", columnNames={"OFFER_ID"})
+    @org.hibernate.annotations.Index(name="OFFERCODE_OFFER_INDEX", columnNames={"OFFER_ID"})
     @AdminPresentation(friendlyName = "OfferCodeImpl_Offer", order=2000,
             prominent = true, gridOrder = 2000)
     @AdminPresentationToOneLookup()
     protected Offer offer;
 
     @Column(name = "OFFER_CODE", nullable=false)
-    @Index(name="OFFERCODE_CODE_INDEX", columnNames={"OFFER_CODE"})
+    @org.hibernate.annotations.Index(name="OFFERCODE_CODE_INDEX", columnNames={"OFFER_CODE"})
     @AdminPresentation(friendlyName = "OfferCodeImpl_Offer_Code", order = 1000, prominent = true, gridOrder = 1000)
     protected String offerCode;
 

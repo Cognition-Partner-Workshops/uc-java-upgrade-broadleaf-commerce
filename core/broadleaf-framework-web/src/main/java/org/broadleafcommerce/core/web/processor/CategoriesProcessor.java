@@ -26,8 +26,8 @@ import org.broadleafcommerce.common.web.dialect.AbstractModelVariableModifierPro
 import org.broadleafcommerce.core.catalog.domain.Category;
 import org.broadleafcommerce.core.catalog.domain.CategoryXref;
 import org.broadleafcommerce.core.catalog.service.CatalogService;
-import org.thymeleaf.Arguments;
-import org.thymeleaf.dom.Element;
+import org.thymeleaf.context.ITemplateContext;
+import org.thymeleaf.model.IProcessableElementTag;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -62,12 +62,7 @@ public class CategoriesProcessor extends AbstractModelVariableModifierProcessor 
     }
     
     @Override
-    public int getPrecedence() {
-        return 10000;
-    }
-
-    @Override
-    protected void modifyModelAttributes(Arguments arguments, Element element) {
+    protected void modifyModelAttributes(ITemplateContext context, IProcessableElementTag element) {
         String resultVar = element.getAttributeValue("resultVar");
         String parentCategory = element.getAttributeValue("parentCategory");
         String unparsedMaxResults = element.getAttributeValue("maxResults");
@@ -76,7 +71,7 @@ public class CategoriesProcessor extends AbstractModelVariableModifierProcessor 
             ExtensionResultHolder holder = new ExtensionResultHolder();
             ExtensionResultStatusType result = extensionManager.getProxy().findAllPossibleChildCategories(parentCategory, unparsedMaxResults, holder);
             if (ExtensionResultStatusType.HANDLED.equals(result)) {
-                addToModel(arguments, resultVar, holder.getResult());
+                addToModel(context, resultVar, holder.getResult());
                 return;
             }
         }
@@ -102,7 +97,7 @@ public class CategoriesProcessor extends AbstractModelVariableModifierProcessor 
                 }
             }
             
-            addToModel(arguments, resultVar, results);
+            addToModel(context, resultVar, results);
         }
     }
 }

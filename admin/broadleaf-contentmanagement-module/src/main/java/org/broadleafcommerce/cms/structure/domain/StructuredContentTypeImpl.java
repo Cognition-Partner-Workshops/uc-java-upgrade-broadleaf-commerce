@@ -68,7 +68,7 @@ public class StructuredContentTypeImpl implements StructuredContentType, AdminMa
 
     @Column (name = "NAME")
     @AdminPresentation(friendlyName = "StructuredContentTypeImpl_Name", order = 1, gridOrder = 1, group = "StructuredContentTypeImpl_Details", prominent = true)
-    @Index(name="SC_TYPE_NAME_INDEX", columnNames={"NAME"})
+    @org.hibernate.annotations.Index(name="SC_TYPE_NAME_INDEX", columnNames={"NAME"})
     protected String name;
 
     @Column (name = "DESCRIPTION")

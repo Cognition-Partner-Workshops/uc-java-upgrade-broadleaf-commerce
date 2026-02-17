@@ -19,44 +19,21 @@
  */
 package org.broadleafcommerce.common.web;
 
-import org.thymeleaf.templatemode.ITemplateModeHandler;
-import org.thymeleaf.templateparser.ITemplateParser;
-import org.thymeleaf.templatewriter.AbstractGeneralTemplateWriter;
-import org.thymeleaf.templatewriter.CacheAwareGeneralTemplateWriter;
-import org.thymeleaf.templatewriter.ITemplateWriter;
+import org.thymeleaf.templatemode.TemplateMode;
 
 /**
- * Overrides the Thymeleaf ContextTemplateResolver and appends the org.broadleafcommerce.common.web.Theme path to the url
- * if it exists.
+ * In Thymeleaf 3, template mode handlers have been removed. Template modes are now
+ * represented by the TemplateMode enum. This class is kept as a compatibility stub.
  */
-public class BroadleafThymeleafTemplateModeHandler implements ITemplateModeHandler {
+public class BroadleafThymeleafTemplateModeHandler {
 
-    private ITemplateModeHandler handler;
-    private CacheAwareGeneralTemplateWriter writer;
+    private TemplateMode templateMode;
 
-    public BroadleafThymeleafTemplateModeHandler(ITemplateModeHandler handler) {
-        super();
-        this.handler = handler;
+    public BroadleafThymeleafTemplateModeHandler(TemplateMode templateMode) {
+        this.templateMode = templateMode;
     }
 
-    public String getTemplateModeName() {
-        return handler.getTemplateModeName();
-    }
-
-    public ITemplateParser getTemplateParser() {
-        return handler.getTemplateParser();
-    }
-
-    public ITemplateWriter getTemplateWriter() {
-        if (handler.getTemplateWriter() instanceof AbstractGeneralTemplateWriter) {
-            if (writer == null) {
-                writer = new CacheAwareGeneralTemplateWriter((AbstractGeneralTemplateWriter) handler.getTemplateWriter());
-            }
-            return writer;
-        } else {
-            return handler.getTemplateWriter();
-        }
+    public TemplateMode getTemplateMode() {
+        return templateMode;
     }
 }
-
-

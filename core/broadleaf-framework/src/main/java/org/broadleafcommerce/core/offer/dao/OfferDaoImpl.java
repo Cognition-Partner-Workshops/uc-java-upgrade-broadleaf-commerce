@@ -34,7 +34,8 @@ import org.broadleafcommerce.core.offer.domain.OrderItemAdjustment;
 import org.broadleafcommerce.core.offer.domain.OrderItemPriceDetailAdjustment;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Restrictions;
-import org.hibernate.ejb.HibernateEntityManager;
+import org.hibernate.Session;
+import javax.persistence.EntityManager;
 import org.springframework.stereotype.Repository;
 
 import java.util.Calendar;
@@ -42,7 +43,6 @@ import java.util.Date;
 import java.util.List;
 
 import javax.annotation.Resource;
-import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 
@@ -151,7 +151,7 @@ public class OfferDaoImpl implements OfferDao {
     @Override
     public List<Offer> readOffersByAutomaticDeliveryType() {
         //TODO change this to a JPA criteria
-        Criteria criteria = ((HibernateEntityManager) em).getSession().createCriteria(OfferImpl.class);
+        Criteria criteria = em.unwrap(Session.class).createCriteria(OfferImpl.class);
 
         Date myDate = getCurrentDateAfterFactoringInDateResolution();
 

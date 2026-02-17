@@ -83,7 +83,7 @@ public class URLHandlerImpl implements URLHandler, Locatable, AdminMainEntity, P
     @AdminPresentation(friendlyName = "URLHandlerImpl_incomingURL", order = 1, group = "URLHandlerImpl_friendyName", prominent = true, groupOrder = 1,
             helpText = "urlHandlerIncoming_help")
     @Column(name = "INCOMING_URL", nullable = false)
-    @Index(name="INCOMING_URL_INDEX", columnNames={"INCOMING_URL"})
+    @org.hibernate.annotations.Index(name="INCOMING_URL_INDEX", columnNames={"INCOMING_URL"})
     protected String incomingURL;
 
     @Column(name = "NEW_URL", nullable = false)

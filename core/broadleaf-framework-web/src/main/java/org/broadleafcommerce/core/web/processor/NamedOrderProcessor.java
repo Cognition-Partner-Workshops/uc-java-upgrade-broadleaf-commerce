@@ -25,8 +25,8 @@ import org.broadleafcommerce.core.order.domain.Order;
 import org.broadleafcommerce.core.order.service.OrderService;
 import org.broadleafcommerce.profile.core.domain.Customer;
 import org.broadleafcommerce.profile.web.core.CustomerState;
-import org.thymeleaf.Arguments;
-import org.thymeleaf.dom.Element;
+import org.thymeleaf.context.ITemplateContext;
+import org.thymeleaf.model.IProcessableElementTag;
 
 import javax.annotation.Resource;
 
@@ -65,12 +65,7 @@ public class NamedOrderProcessor extends AbstractModelVariableModifierProcessor 
     }
 
     @Override
-    public int getPrecedence() {
-        return 10000;
-    }
-
-    @Override
-    protected void modifyModelAttributes(Arguments arguments, Element element) {
+    protected void modifyModelAttributes(ITemplateContext arguments, IProcessableElementTag element) {
         Customer customer = CustomerState.getCustomer();
 
         String orderVar = element.getAttributeValue("orderVar");

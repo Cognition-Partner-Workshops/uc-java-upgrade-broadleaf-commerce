@@ -68,13 +68,13 @@ public class MediaImpl implements Media, MultiTenantCloneable<MediaImpl> {
     protected Long id;
 
     @Column(name = "URL", nullable = false)
-    @Index(name="MEDIA_URL_INDEX", columnNames={"URL"})
+    @org.hibernate.annotations.Index(name="MEDIA_URL_INDEX", columnNames={"URL"})
     @AdminPresentation(friendlyName = "MediaImpl_Media_Url", order = 1, prominent = true,
             fieldType = SupportedFieldType.ASSET_LOOKUP)
     protected String url;
     
     @Column(name = "TITLE")
-    @Index(name="MEDIA_TITLE_INDEX", columnNames={"TITLE"})
+    @org.hibernate.annotations.Index(name="MEDIA_TITLE_INDEX", columnNames={"TITLE"})
     @AdminPresentation(friendlyName = "MediaImpl_Media_Title", order=2, prominent=true)
     protected String title;
     

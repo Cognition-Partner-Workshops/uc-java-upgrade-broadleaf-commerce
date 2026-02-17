@@ -36,8 +36,8 @@ import org.broadleafcommerce.core.order.service.OrderService;
 import org.broadleafcommerce.core.payment.domain.OrderPayment;
 import org.broadleafcommerce.profile.core.domain.Address;
 import org.springframework.beans.factory.annotation.Value;
-import org.thymeleaf.Arguments;
-import org.thymeleaf.dom.Element;
+import org.thymeleaf.context.ITemplateContext;
+import org.thymeleaf.model.IProcessableElementTag;
 
 import java.util.Map;
 
@@ -88,19 +88,14 @@ public class GoogleAnalyticsProcessor extends AbstractModelVariableModifierProce
     }
 
     @Override
-    public int getPrecedence() {
-        return 100000;
-    }
-
-    @Override
-    protected void modifyModelAttributes(Arguments arguments, Element element) {
+    protected void modifyModelAttributes(ITemplateContext context, IProcessableElementTag element) {
 
         String orderNumber = element.getAttributeValue("orderNumber");
         Order order = null;
         if (orderNumber != null) {
             order = orderService.findOrderByOrderNumber(orderNumber);
         }
-        addToModel(arguments, "analytics", analytics(getWebPropertyId(), order));
+        addToModel(context, "analytics", analytics(getWebPropertyId(), order));
     }
 
     /**

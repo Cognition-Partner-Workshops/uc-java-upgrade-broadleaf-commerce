@@ -32,8 +32,9 @@ import org.broadleafcommerce.common.persistence.EntityConfiguration;
 import org.broadleafcommerce.common.sandbox.SandBoxHelper;
 import org.broadleafcommerce.common.util.dao.DynamicDaoHelper;
 import org.broadleafcommerce.common.util.dao.DynamicDaoHelperImpl;
-import org.hibernate.ejb.HibernateEntityManager;
-import org.hibernate.ejb.QueryHints;
+import org.hibernate.Session;
+import javax.persistence.EntityManager;
+import org.hibernate.jpa.QueryHints;
 import org.hibernate.type.LongType;
 import org.hibernate.type.StringType;
 import org.hibernate.type.Type;
@@ -44,7 +45,6 @@ import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Resource;
-import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
@@ -87,7 +87,7 @@ public class TranslationDaoImpl implements TranslationDao {
     @Override
     public Map<String, Object> getIdPropertyMetadata(TranslatedEntity entity) {
         Class<?> implClass = entityConfiguration.lookupEntityClass(entity.getType());
-        return dynamicDaoHelper.getIdMetadata(implClass, (HibernateEntityManager) em);
+        return dynamicDaoHelper.getIdMetadata(implClass, (EntityManager) em);
     }
 
     @Override

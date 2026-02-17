@@ -65,7 +65,7 @@ public class EmailTrackingOpensImpl implements EmailTrackingOpens {
 
     @ManyToOne(targetEntity = EmailTrackingImpl.class)
     @JoinColumn(name = "EMAIL_TRACKING_ID")
-    @Index(name="TRACKINGOPEN_TRACKING", columnNames={"EMAIL_TRACKING_ID"})
+    @org.hibernate.annotations.Index(name="TRACKINGOPEN_TRACKING", columnNames={"EMAIL_TRACKING_ID"})
     protected EmailTracking emailTracking;
 
     /* (non-Javadoc)

@@ -306,7 +306,7 @@ public class BasicPersistenceModule implements PersistenceModule, RecordHelper, 
             }
         });
         Session session = getPersistenceManager().getDynamicEntityDao().getStandardEntityManager().unwrap(Session.class);
-        FlushMode originalFlushMode = session.getFlushMode();
+        FlushMode originalFlushMode = session.getHibernateFlushMode();
         try {
             session.setFlushMode(FlushMode.MANUAL);
             RuntimeException entityPersistenceException = null;

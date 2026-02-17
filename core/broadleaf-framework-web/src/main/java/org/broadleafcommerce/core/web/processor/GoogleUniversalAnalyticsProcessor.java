@@ -34,12 +34,11 @@ import org.broadleafcommerce.core.order.domain.OrderItemAttribute;
 import org.broadleafcommerce.core.order.domain.SkuAccessor;
 import org.broadleafcommerce.core.order.service.OrderService;
 import org.springframework.beans.factory.annotation.Value;
-import org.thymeleaf.Arguments;
-import org.thymeleaf.dom.Element;
-import org.thymeleaf.dom.Macro;
-import org.thymeleaf.dom.Node;
-import org.thymeleaf.processor.ProcessorResult;
-import org.thymeleaf.processor.element.AbstractElementProcessor;
+import org.thymeleaf.context.ITemplateContext;
+import org.thymeleaf.model.IProcessableElementTag;
+import org.thymeleaf.processor.element.AbstractElementTagProcessor;
+import org.thymeleaf.processor.element.IElementTagStructureHandler;
+import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.standard.expression.Expression;
 import org.thymeleaf.standard.expression.IStandardExpressionParser;
 import org.thymeleaf.standard.expression.StandardExpressions;
@@ -77,7 +76,7 @@ import javax.servlet.http.HttpServletRequest;
  * 
  * @author Phillip Verheyden (phillipuniverse)
  */
-public class GoogleUniversalAnalyticsProcessor extends AbstractElementProcessor {
+public class GoogleUniversalAnalyticsProcessor extends AbstractElementTagProcessor {
 
     private static final Log LOG = LogFactory.getLog(GoogleUniversalAnalyticsProcessor.class);
 
@@ -98,20 +97,15 @@ public class GoogleUniversalAnalyticsProcessor extends AbstractElementProcessor 
     protected boolean testLocal = false;
     
     public GoogleUniversalAnalyticsProcessor() {
-        super("google_universal_analytics");
+        super(TemplateMode.HTML, "blc", "google_universal_analytics", true, null, false, 1000);
     }
     
     public GoogleUniversalAnalyticsProcessor(String elementName) {
-        super(elementName);
-    }
-    
-    @Override
-    public int getPrecedence() {
-        return 0;
+        super(TemplateMode.HTML, "blc", elementName, true, null, false, 1000);
     }
 
     @Override
-    protected ProcessorResult processElement(Arguments arguments, Element element) {
+    protected void doProcess(ITemplateContext arguments, IProcessableElementTag element, IElementTagStructureHandler structureHandler) {
         StringBuffer sb = new StringBuffer();
         Map<String, String> trackers = getTrackers();
         if (MapUtils.isNotEmpty(trackers)) {
@@ -125,8 +119,8 @@ public class GoogleUniversalAnalyticsProcessor extends AbstractElementProcessor 
             String orderNumber = null;
             if (orderNumberExpression != null) {
                 final IStandardExpressionParser expressionParser = StandardExpressions.getExpressionParser(arguments.getConfiguration());
-                Expression expression = (Expression) expressionParser.parseExpression(arguments.getConfiguration(), arguments, orderNumberExpression);
-                orderNumber = (String) expression.execute(arguments.getConfiguration(), arguments);
+                Expression expression = (Expression) expressionParser.parseExpression(arguments, orderNumberExpression);
+                orderNumber = (String) expression.execute(arguments);
             }
             
             Order order = null;
@@ -181,18 +175,11 @@ public class GoogleUniversalAnalyticsProcessor extends AbstractElementProcessor 
             
             sb.append("</script>");
             
-            // Add contentNode to the document
-            Node contentNode = new Macro(sb.toString());
-            element.clearChildren();
-            element.getParent().insertAfter(element, contentNode);
-            element.getParent().removeChild(element);
+            structureHandler.replaceWith(sb.toString(), false);
         } else {
             LOG.warn("No trackers were found, not outputting Google Analytics script. Set the googleAnalytics.webPropertyId"
                     + " and/or the googleAnalytics.masterWebPropertyId system properties to output Google Analytics");
         }
-
-        // Return OK
-        return ProcessorResult.OK;
     }
     
     /**

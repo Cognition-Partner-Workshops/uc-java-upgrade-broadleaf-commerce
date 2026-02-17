@@ -87,13 +87,13 @@ public class FulfillmentGroupAdjustmentImpl implements FulfillmentGroupAdjustmen
 
     @ManyToOne(targetEntity = FulfillmentGroupImpl.class)
     @JoinColumn(name = "FULFILLMENT_GROUP_ID")
-    @Index(name="FGADJUSTMENT_INDEX", columnNames={"FULFILLMENT_GROUP_ID"})
+    @org.hibernate.annotations.Index(name="FGADJUSTMENT_INDEX", columnNames={"FULFILLMENT_GROUP_ID"})
     @AdminPresentation(excluded = true)
     protected FulfillmentGroup fulfillmentGroup;
 
     @ManyToOne(targetEntity = OfferImpl.class, optional=false)
     @JoinColumn(name = "OFFER_ID")
-    @Index(name="FGADJUSTMENT_OFFER_INDEX", columnNames={"OFFER_ID"})
+    @org.hibernate.annotations.Index(name="FGADJUSTMENT_OFFER_INDEX", columnNames={"OFFER_ID"})
     @AdminPresentation(friendlyName = "FulfillmentGroupAdjustmentImpl_Offer", order=1000,
             prominent = true, gridOrder = 1000)
     @AdminPresentationToOneLookup()

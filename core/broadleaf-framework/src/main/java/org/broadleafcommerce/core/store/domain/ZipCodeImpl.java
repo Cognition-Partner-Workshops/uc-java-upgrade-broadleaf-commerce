@@ -40,23 +40,23 @@ public class ZipCodeImpl implements Serializable, ZipCode {
     private String id;
 
     @Column(name = "ZIPCODE", insertable = false, updatable = false)
-    @Index(name="ZIPCODE_ZIP_INDEX", columnNames={"ZIPCODE"})
+    @org.hibernate.annotations.Index(name="ZIPCODE_ZIP_INDEX", columnNames={"ZIPCODE"})
     private Integer zipcode;
 
     @Column(name = "ZIP_STATE", insertable = false, updatable = false)
-    @Index(name="ZIPCODE_STATE_INDEX", columnNames={"ZIP_STATE"})
+    @org.hibernate.annotations.Index(name="ZIPCODE_STATE_INDEX", columnNames={"ZIP_STATE"})
     private String zipState;
 
     @Column(name = "ZIP_CITY")
-    @Index(name="ZIPCODE_CITY_INDEX", columnNames={"ZIP_CITY"})
+    @org.hibernate.annotations.Index(name="ZIPCODE_CITY_INDEX", columnNames={"ZIP_CITY"})
     private String zipCity;
 
     @Column(name = "ZIP_LONGITUDE")
-    @Index(name="ZIPCODE_LONGITUDE_INDEX", columnNames={"ZIP_LONGITUDE"})
+    @org.hibernate.annotations.Index(name="ZIPCODE_LONGITUDE_INDEX", columnNames={"ZIP_LONGITUDE"})
     private double zipLongitude;
 
     @Column(name = "ZIP_LATITUDE")
-    @Index(name="ZIPCODE_LATITUDE_INDEX", columnNames={"ZIP_LATITUDE"})
+    @org.hibernate.annotations.Index(name="ZIPCODE_LATITUDE_INDEX", columnNames={"ZIP_LATITUDE"})
     private double zipLatitude;
 
     public String getId() {

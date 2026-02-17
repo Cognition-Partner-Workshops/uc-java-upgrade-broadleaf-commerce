@@ -142,7 +142,7 @@ public class OrderImpl implements Order, AdminMainEntity, CurrencyCodeIdentifiab
     protected PreviewStatus previewable = new PreviewStatus();
 
     @Column(name = "NAME")
-    @Index(name="ORDER_NAME_INDEX", columnNames={"NAME"})
+    @org.hibernate.annotations.Index(name="ORDER_NAME_INDEX", columnNames={"NAME"})
     @AdminPresentation(friendlyName = "OrderImpl_Order_Name", group = Presentation.Group.Name.General,
             order=Presentation.FieldOrder.NAME, prominent=true, groupOrder = Presentation.Group.Order.General,
             gridOrder = 2000)
@@ -150,14 +150,14 @@ public class OrderImpl implements Order, AdminMainEntity, CurrencyCodeIdentifiab
 
     @ManyToOne(targetEntity = CustomerImpl.class, optional=false, cascade = CascadeType.REFRESH)
     @JoinColumn(name = "CUSTOMER_ID", nullable = false)
-    @Index(name="ORDER_CUSTOMER_INDEX", columnNames={"CUSTOMER_ID"})
+    @org.hibernate.annotations.Index(name="ORDER_CUSTOMER_INDEX", columnNames={"CUSTOMER_ID"})
     @AdminPresentation(friendlyName = "OrderImpl_Customer", group = Presentation.Group.Name.General,
             order=Presentation.FieldOrder.CUSTOMER, groupOrder = Presentation.Group.Order.General)
     @AdminPresentationToOneLookup()
     protected Customer customer;
 
     @Column(name = "ORDER_STATUS")
-    @Index(name="ORDER_STATUS_INDEX", columnNames={"ORDER_STATUS"})
+    @org.hibernate.annotations.Index(name="ORDER_STATUS_INDEX", columnNames={"ORDER_STATUS"})
     @AdminPresentation(friendlyName = "OrderImpl_Order_Status", group = Presentation.Group.Name.General,
             order=Presentation.FieldOrder.STATUS, prominent=true, fieldType=SupportedFieldType.BROADLEAF_ENUMERATION,
             broadleafEnumeration="org.broadleafcommerce.core.order.service.type.OrderStatus",
@@ -196,14 +196,14 @@ public class OrderImpl implements Order, AdminMainEntity, CurrencyCodeIdentifiab
     protected Date submitDate;
 
     @Column(name = "ORDER_NUMBER")
-    @Index(name="ORDER_NUMBER_INDEX", columnNames={"ORDER_NUMBER"})
+    @org.hibernate.annotations.Index(name="ORDER_NUMBER_INDEX", columnNames={"ORDER_NUMBER"})
     @AdminPresentation(friendlyName = "OrderImpl_Order_Number", group = Presentation.Group.Name.General,
             order=Presentation.FieldOrder.ORDERNUMBER, prominent=true, groupOrder = Presentation.Group.Order.General,
             gridOrder = 1000)
     private String orderNumber;
 
     @Column(name = "EMAIL_ADDRESS")
-    @Index(name="ORDER_EMAIL_INDEX", columnNames={"EMAIL_ADDRESS"})
+    @org.hibernate.annotations.Index(name="ORDER_EMAIL_INDEX", columnNames={"EMAIL_ADDRESS"})
     @AdminPresentation(friendlyName = "OrderImpl_Order_Email_Address", group = Presentation.Group.Name.General,
             order=Presentation.FieldOrder.EMAILADDRESS, groupOrder = Presentation.Group.Order.General)
     protected String emailAddress;

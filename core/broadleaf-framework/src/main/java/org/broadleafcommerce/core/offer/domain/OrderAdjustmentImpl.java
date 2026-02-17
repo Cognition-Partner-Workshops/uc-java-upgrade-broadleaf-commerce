@@ -87,13 +87,13 @@ public class OrderAdjustmentImpl implements OrderAdjustment, CurrencyCodeIdentif
 
     @ManyToOne(targetEntity = OrderImpl.class)
     @JoinColumn(name = "ORDER_ID")
-    @Index(name="ORDERADJUST_ORDER_INDEX", columnNames={"ORDER_ID"})
+    @org.hibernate.annotations.Index(name="ORDERADJUST_ORDER_INDEX", columnNames={"ORDER_ID"})
     @AdminPresentation(excluded = true)
     protected Order order;
 
     @ManyToOne(targetEntity = OfferImpl.class, optional=false)
     @JoinColumn(name = "OFFER_ID")
-    @Index(name="ORDERADJUST_OFFER_INDEX", columnNames={"OFFER_ID"})
+    @org.hibernate.annotations.Index(name="ORDERADJUST_OFFER_INDEX", columnNames={"OFFER_ID"})
     @AdminPresentation(friendlyName = "OrderAdjustmentImpl_Offer", order=1000,
             prominent = true, gridOrder = 1000)
     @AdminPresentationToOneLookup()

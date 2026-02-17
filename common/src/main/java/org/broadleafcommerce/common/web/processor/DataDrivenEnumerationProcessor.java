@@ -24,8 +24,8 @@ import org.broadleafcommerce.common.enumeration.domain.DataDrivenEnumeration;
 import org.broadleafcommerce.common.enumeration.domain.DataDrivenEnumerationValue;
 import org.broadleafcommerce.common.enumeration.service.DataDrivenEnumerationService;
 import org.broadleafcommerce.common.web.dialect.AbstractModelVariableModifierProcessor;
-import org.thymeleaf.Arguments;
-import org.thymeleaf.dom.Element;
+import org.thymeleaf.context.ITemplateContext;
+import org.thymeleaf.model.IProcessableElementTag;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -60,7 +60,7 @@ public class DataDrivenEnumerationProcessor extends AbstractModelVariableModifie
     }
 
     @Override
-    protected void modifyModelAttributes(Arguments arguments, Element element) {
+    protected void modifyModelAttributes(ITemplateContext arguments, IProcessableElementTag element) {
         String key = element.getAttributeValue("key");
         if (StringUtils.isEmpty(key)) {
             throw new IllegalArgumentException("No 'key' parameter was passed to find enumeration values");
@@ -88,11 +88,6 @@ public class DataDrivenEnumerationProcessor extends AbstractModelVariableModifie
         }
         
         addToModel(arguments, "enumValues", enumValues);
-    }
-
-    @Override
-    public int getPrecedence() {
-        return 1;
     }
 
 }

@@ -63,7 +63,7 @@ public class ReviewDetailImpl implements ReviewDetail {
 
     @ManyToOne(targetEntity = CustomerImpl.class, optional = false)
     @JoinColumn(name = "CUSTOMER_ID")
-    @Index(name="REVIEWDETAIL_CUSTOMER_INDEX", columnNames={"CUSTOMER_ID"})
+    @org.hibernate.annotations.Index(name="REVIEWDETAIL_CUSTOMER_INDEX", columnNames={"CUSTOMER_ID"})
     protected Customer customer;
 
     @Column(name = "REVIEW_SUBMITTED_DATE", nullable = false)
@@ -73,7 +73,7 @@ public class ReviewDetailImpl implements ReviewDetail {
     protected String reviewText;
 
     @Column(name = "REVIEW_STATUS", nullable = false)
-    @Index(name="REVIEWDETAIL_STATUS_INDEX", columnNames={"REVIEW_STATUS"})
+    @org.hibernate.annotations.Index(name="REVIEWDETAIL_STATUS_INDEX", columnNames={"REVIEW_STATUS"})
     protected String reviewStatus;
 
     @Column(name = "HELPFUL_COUNT", nullable = false)
@@ -84,7 +84,7 @@ public class ReviewDetailImpl implements ReviewDetail {
 
     @ManyToOne(optional = false, targetEntity = RatingSummaryImpl.class)
     @JoinColumn(name = "RATING_SUMMARY_ID")
-    @Index(name="REVIEWDETAIL_SUMMARY_INDEX", columnNames={"RATING_SUMMARY_ID"})
+    @org.hibernate.annotations.Index(name="REVIEWDETAIL_SUMMARY_INDEX", columnNames={"RATING_SUMMARY_ID"})
     protected RatingSummary ratingSummary;
 
     @OneToMany(mappedBy = "reviewDetail", targetEntity = ReviewFeedbackImpl.class, cascade = {CascadeType.ALL})
@@ -92,7 +92,7 @@ public class ReviewDetailImpl implements ReviewDetail {
 
     @OneToOne(targetEntity = RatingDetailImpl.class)
     @JoinColumn(name = "RATING_DETAIL_ID")
-    @Index(name="REVIEWDETAIL_RATING_INDEX", columnNames={"RATING_DETAIL_ID"})
+    @org.hibernate.annotations.Index(name="REVIEWDETAIL_RATING_INDEX", columnNames={"RATING_DETAIL_ID"})
     protected RatingDetail ratingDetail;
 
     public ReviewDetailImpl() {}

@@ -53,12 +53,12 @@ public class CountrySubdivisionImpl implements CountrySubdivision, AdminMainEnti
     protected String abbreviation;
 
     @Column(name = "NAME", nullable = false)
-    @Index(name="COUNTRY_SUB_NAME_IDX", columnNames={"NAME"})
+    @org.hibernate.annotations.Index(name="COUNTRY_SUB_NAME_IDX", columnNames={"NAME"})
     @AdminPresentation(friendlyName = "CountrySubdivisionImpl_Name", order=9, group = "CountrySubdivisionImpl_Address", prominent = true, translatable = true)
     protected String name;
 
     @Column(name = "ALT_ABBREVIATION")
-    @Index(name="COUNTRY_SUB_ALT_ABRV_IDX", columnNames={"ALT_ABBREVIATION"})
+    @org.hibernate.annotations.Index(name="COUNTRY_SUB_ALT_ABRV_IDX", columnNames={"ALT_ABBREVIATION"})
     @AdminPresentation(friendlyName = "CountrySubdivisionImpl_AltAbbreviation", order=10, group = "CountrySubdivisionImpl_Address", prominent = true)
     protected String alternateAbbreviation;
 

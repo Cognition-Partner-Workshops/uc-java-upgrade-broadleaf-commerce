@@ -51,7 +51,7 @@ public class SearchSynonymImpl implements SearchSynonym {
     private Long id;
     
     @Column(name = "TERM")
-    @Index(name="SEARCHSYNONYM_TERM_INDEX", columnNames={"TERM"})
+    @org.hibernate.annotations.Index(name="SEARCHSYNONYM_TERM_INDEX", columnNames={"TERM"})
     private String term;
     
     @Column(name = "SYNONYMS")

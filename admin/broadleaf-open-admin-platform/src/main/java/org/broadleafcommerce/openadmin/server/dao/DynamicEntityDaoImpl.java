@@ -50,7 +50,8 @@ import org.broadleafcommerce.openadmin.server.service.type.FieldProviderResponse
 import org.hibernate.Criteria;
 import org.hibernate.MappingException;
 import org.hibernate.SessionFactory;
-import org.hibernate.ejb.HibernateEntityManager;
+import org.hibernate.Session;
+import javax.persistence.EntityManager;
 import org.hibernate.mapping.PersistentClass;
 import org.hibernate.mapping.Property;
 import org.hibernate.type.ComponentType;
@@ -84,7 +85,6 @@ import java.util.Set;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Resource;
-import javax.persistence.EntityManager;
 
 /**
  * 
@@ -153,7 +153,7 @@ public class DynamicEntityDaoImpl implements DynamicEntityDao, ApplicationContex
 
     @Override
     public Criteria createCriteria(Class<?> entityClass) {
-        return ((HibernateEntityManager) getStandardEntityManager()).getSession().createCriteria(entityClass);
+        return getStandardEntityManager().unwrap(Session.class).createCriteria(entityClass);
     }
     
     @Override
@@ -208,7 +208,11 @@ public class DynamicEntityDaoImpl implements DynamicEntityDao, ApplicationContex
 
     @Override
     public PersistentClass getPersistentClass(String targetClassName) {
-        return ejb3ConfigurationDao.getConfiguration().getClassMapping(targetClassName);
+        try {
+            return ejb3ConfigurationDao.getMetadata().getEntityBinding(targetClassName);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     @Override
@@ -813,22 +817,22 @@ public class DynamicEntityDaoImpl implements DynamicEntityDao, ApplicationContex
 
     @Override
     public SessionFactory getSessionFactory() {
-        return dynamicDaoHelper.getSessionFactory((HibernateEntityManager) standardEntityManager);
+        return dynamicDaoHelper.getSessionFactory((EntityManager) standardEntityManager);
     }
 
     @Override
     public Map<String, Object> getIdMetadata(Class<?> entityClass) {
-        return dynamicDaoHelper.getIdMetadata(entityClass, (HibernateEntityManager) standardEntityManager);
+        return dynamicDaoHelper.getIdMetadata(entityClass, (EntityManager) standardEntityManager);
     }
 
     @Override
     public List<String> getPropertyNames(Class<?> entityClass) {
-        return dynamicDaoHelper.getPropertyNames(entityClass, (HibernateEntityManager) standardEntityManager);
+        return dynamicDaoHelper.getPropertyNames(entityClass, (EntityManager) standardEntityManager);
     }
 
     @Override
     public List<Type> getPropertyTypes(Class<?> entityClass) {
-        return dynamicDaoHelper.getPropertyTypes(entityClass, (HibernateEntityManager) standardEntityManager);
+        return dynamicDaoHelper.getPropertyTypes(entityClass, (EntityManager) standardEntityManager);
     }
 
     protected Map<String, FieldMetadata> getPropertiesForEntityClass(

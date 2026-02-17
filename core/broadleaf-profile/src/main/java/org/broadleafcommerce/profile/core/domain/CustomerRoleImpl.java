@@ -58,12 +58,12 @@ public class CustomerRoleImpl implements CustomerRole {
 
     @ManyToOne(targetEntity = CustomerImpl.class, optional = false)
     @JoinColumn(name = "CUSTOMER_ID")
-    @Index(name="CUSTROLE_CUSTOMER_INDEX", columnNames={"CUSTOMER_ID"})
+    @org.hibernate.annotations.Index(name="CUSTROLE_CUSTOMER_INDEX", columnNames={"CUSTOMER_ID"})
     protected Customer customer;
 
     @ManyToOne(targetEntity = RoleImpl.class, optional = false)
     @JoinColumn(name = "ROLE_ID")
-    @Index(name="CUSTROLE_ROLE_INDEX", columnNames={"ROLE_ID"})
+    @org.hibernate.annotations.Index(name="CUSTROLE_ROLE_INDEX", columnNames={"ROLE_ID"})
     protected Role role;
 
     @Override

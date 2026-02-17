@@ -78,7 +78,7 @@ public class ProductAttributeImpl implements ProductAttribute {
     
     /** The name. */
     @Column(name = "NAME", nullable=false)
-    @Index(name="PRODUCTATTRIBUTE_NAME_INDEX", columnNames={"NAME"})
+    @org.hibernate.annotations.Index(name="PRODUCTATTRIBUTE_NAME_INDEX", columnNames={"NAME"})
     @AdminPresentation(visibility = VisibilityEnum.HIDDEN_ALL)
     protected String name;
 
@@ -95,7 +95,7 @@ public class ProductAttributeImpl implements ProductAttribute {
     /** The product. */
     @ManyToOne(targetEntity = ProductImpl.class, optional=false, cascade = CascadeType.REFRESH)
     @JoinColumn(name = "PRODUCT_ID")
-    @Index(name="PRODUCTATTRIBUTE_INDEX", columnNames={"PRODUCT_ID"})
+    @org.hibernate.annotations.Index(name="PRODUCTATTRIBUTE_INDEX", columnNames={"PRODUCT_ID"})
     protected Product product;
 
     @Override

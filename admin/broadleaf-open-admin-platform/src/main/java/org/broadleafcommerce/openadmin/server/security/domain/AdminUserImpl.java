@@ -104,7 +104,7 @@ public class AdminUserImpl implements AdminUser, AdminMainEntity {
     private Long id;
 
     @Column(name = "NAME", nullable=false)
-    @Index(name="ADMINUSER_NAME_INDEX", columnNames={"NAME"})
+    @org.hibernate.annotations.Index(name="ADMINUSER_NAME_INDEX", columnNames={"NAME"})
     @AdminPresentation(friendlyName = "AdminUserImpl_Admin_Name", gridOrder = 1000, order = 1000,
             group = "AdminUserImpl_User", prominent = true)
     protected String name;
@@ -130,7 +130,7 @@ public class AdminUserImpl implements AdminUser, AdminMainEntity {
     protected String password;
 
     @Column(name = "EMAIL", nullable=false)
-    @Index(name="ADMINPERM_EMAIL_INDEX", columnNames={"EMAIL"})
+    @org.hibernate.annotations.Index(name="ADMINPERM_EMAIL_INDEX", columnNames={"EMAIL"})
     @AdminPresentation(friendlyName = "AdminUserImpl_Admin_Email_Address", order = 3000, group = "AdminUserImpl_User")
     protected String email;
 

@@ -168,7 +168,7 @@ public class SkuImpl implements Sku {
     protected Long id;
 
     @Column(name = "EXTERNAL_ID")
-    @Index(name="SKU_EXTERNAL_ID_INDEX", columnNames={"EXTERNAL_ID"})
+    @org.hibernate.annotations.Index(name="SKU_EXTERNAL_ID_INDEX", columnNames={"EXTERNAL_ID"})
     @AdminPresentation(friendlyName = "SkuImpl_Sku_ExternalID",
             tab = Presentation.Tab.Name.Advanced, tabOrder = Presentation.Tab.Order.Advanced,
             group = Presentation.Group.Name.Advanced, groupOrder = Presentation.Group.Order.Advanced)
@@ -242,13 +242,13 @@ public class SkuImpl implements Sku {
     protected String taxCode;
 
     @Column(name = "TAXABLE_FLAG")
-    @Index(name="SKU_TAXABLE_INDEX", columnNames={"TAXABLE_FLAG"})
+    @org.hibernate.annotations.Index(name="SKU_TAXABLE_INDEX", columnNames={"TAXABLE_FLAG"})
     @AdminPresentation(friendlyName = "SkuImpl_Sku_Taxable", order = 1000,
             group = ProductImpl.Presentation.Group.Name.Financial)
     protected Character taxable;
 
     @Column(name = "DISCOUNTABLE_FLAG")
-    @Index(name="SKU_DISCOUNTABLE_INDEX", columnNames={"DISCOUNTABLE_FLAG"})
+    @org.hibernate.annotations.Index(name="SKU_DISCOUNTABLE_INDEX", columnNames={"DISCOUNTABLE_FLAG"})
     @AdminPresentation(friendlyName = "SkuImpl_Sku_Discountable", order = 2000, 
         tab = ProductImpl.Presentation.Tab.Name.Advanced, tabOrder = ProductImpl.Presentation.Tab.Order.Advanced, 
         group = ProductImpl.Presentation.Group.Name.Advanced, groupOrder = ProductImpl.Presentation.Group.Order.Advanced)
@@ -261,7 +261,7 @@ public class SkuImpl implements Sku {
     protected Character available;
 
     @Column(name = "ACTIVE_START_DATE")
-    @Index(name="SKU_ACTIVE_START_INDEX")
+    @org.hibernate.annotations.Index(name="SKU_ACTIVE_START_INDEX")
     @AdminPresentation(friendlyName = "SkuImpl_Sku_Start_Date", order = 1000,
         group = ProductImpl.Presentation.Group.Name.ActiveDateRange, 
         groupOrder = ProductImpl.Presentation.Group.Order.ActiveDateRange,
@@ -270,7 +270,7 @@ public class SkuImpl implements Sku {
     protected Date activeStartDate;
 
     @Column(name = "ACTIVE_END_DATE")
-    @Index(name="SKU_ACTIVE_END_INDEX")
+    @org.hibernate.annotations.Index(name="SKU_ACTIVE_END_INDEX")
     @AdminPresentation(friendlyName = "SkuImpl_Sku_End_Date", order = 2000, 
         group = ProductImpl.Presentation.Group.Name.ActiveDateRange, 
         groupOrder = ProductImpl.Presentation.Group.Order.ActiveDateRange,

@@ -25,7 +25,6 @@ import org.broadleafcommerce.openadmin.server.security.domain.AdminPermission;
 import org.broadleafcommerce.openadmin.server.security.domain.AdminRole;
 import org.broadleafcommerce.openadmin.server.security.domain.AdminUser;
 import org.broadleafcommerce.openadmin.server.security.service.type.PermissionType;
-import org.springframework.security.authentication.dao.SaltSource;
 
 import java.util.List;
 
@@ -125,18 +124,10 @@ public interface AdminSecurityService {
      * @return the currently used {@link SaltSource}
      */
     @Deprecated
-    public SaltSource getSaltSource();
+    public Object getSaltSource();
     
-    /**
-     * Sets the {@link SaltSource} used with blAdminPasswordEncoder to encrypt the user password. Usually configured within
-     * applicationContext-admin-security.xml
-     *
-     * @deprecated the new {@link org.springframework.security.crypto.password.PasswordEncoder PasswordEncoder} handles salting internally, this will be removed in 4.2
-     * 
-     * @param saltSource the new {@link SaltSource} to use
-     */
     @Deprecated
-    public void setSaltSource(SaltSource saltSource);
+    public void setSaltSource(Object saltSource);
     
     /**
      * Gets the salt object for the current admin user. By default this delegates to {@link #getSaltSource()}. If there is

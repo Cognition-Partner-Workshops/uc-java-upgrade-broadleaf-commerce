@@ -69,7 +69,7 @@ public class AdminSectionImpl implements AdminSection {
     protected Long id;
 
     @Column(name = "NAME", nullable=false)
-    @Index(name="ADMINSECTION_NAME_INDEX", columnNames={"NAME"})
+    @org.hibernate.annotations.Index(name="ADMINSECTION_NAME_INDEX", columnNames={"NAME"})
     @AdminPresentation(friendlyName = "AdminSectionImpl_Name", order=1, group = "AdminSectionImpl_Section", prominent=true)
     protected String name;
 
@@ -84,7 +84,7 @@ public class AdminSectionImpl implements AdminSection {
     @ManyToOne(optional=false, targetEntity = AdminModuleImpl.class)
     @Fetch(FetchMode.JOIN)
     @JoinColumn(name = "ADMIN_MODULE_ID")
-    @Index(name="ADMINSECTION_MODULE_INDEX", columnNames={"ADMIN_MODULE_ID"})
+    @org.hibernate.annotations.Index(name="ADMINSECTION_MODULE_INDEX", columnNames={"ADMIN_MODULE_ID"})
     protected AdminModule module;
 
     @ManyToMany(fetch = FetchType.LAZY, targetEntity = AdminPermissionImpl.class)

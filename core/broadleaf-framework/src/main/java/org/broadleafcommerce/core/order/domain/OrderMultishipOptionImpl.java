@@ -60,7 +60,7 @@ public class OrderMultishipOptionImpl implements OrderMultishipOption {
     
     @ManyToOne(targetEntity = OrderImpl.class)
     @JoinColumn(name = "ORDER_ID")
-    @Index(name="MULTISHIP_OPTION_ORDER_INDEX", columnNames={"ORDER_ID"})
+    @org.hibernate.annotations.Index(name="MULTISHIP_OPTION_ORDER_INDEX", columnNames={"ORDER_ID"})
     protected Order order;
 
     @ManyToOne(targetEntity = OrderItemImpl.class)

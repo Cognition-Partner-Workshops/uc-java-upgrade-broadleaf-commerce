@@ -50,10 +50,13 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class BroadleafSocialRegisterController extends BroadleafRegisterController {
 
+    @javax.annotation.Resource
+    protected ProviderSignInUtils providerSignInUtils;
+
     //Pre-populate portions of the RegisterCustomerForm from ProviderSignInUtils.getConnection();
     public String register(RegisterCustomerForm registerCustomerForm, HttpServletRequest request,
                            HttpServletResponse response, Model model) {
-        Connection<?> connection = ProviderSignInUtils.getConnection(new ServletWebRequest(request));
+        Connection<?> connection = providerSignInUtils.getConnectionFromSession(new ServletWebRequest(request));
         if (connection != null) {
             UserProfile userProfile = connection.fetchUserProfile();
             Customer customer = registerCustomerForm.getCustomer();
@@ -85,7 +88,7 @@ public class BroadleafSocialRegisterController extends BroadleafRegisterControll
                     registerCustomerForm.getPassword(), registerCustomerForm.getPasswordConfirm());
             assert(newCustomer != null);
 
-            ProviderSignInUtils.handlePostSignUp(newCustomer.getUsername(), new ServletWebRequest(request));
+            providerSignInUtils.doPostSignUp(newCustomer.getUsername(), new ServletWebRequest(request));
 
             // The next line needs to use the customer from the input form and not the customer returned after registration
             // so that we still have the unencoded password for use by the authentication mechanism.

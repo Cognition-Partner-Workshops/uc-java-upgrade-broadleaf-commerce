@@ -60,19 +60,19 @@ public class OfferAuditImpl implements OfferAudit {
     protected Long id;
 
     @Column(name = "OFFER_ID")
-    @Index(name="OFFERAUDIT_OFFER_INDEX", columnNames={"OFFER_ID"})
+    @org.hibernate.annotations.Index(name="OFFERAUDIT_OFFER_INDEX", columnNames={"OFFER_ID"})
     protected Long offerId;
 
     @Column(name = "CUSTOMER_ID")
-    @Index(name="OFFERAUDIT_CUSTOMER_INDEX", columnNames={"CUSTOMER_ID"})
+    @org.hibernate.annotations.Index(name="OFFERAUDIT_CUSTOMER_INDEX", columnNames={"CUSTOMER_ID"})
     protected Long customerId;
 
     @Column(name = "ORDER_ID")
-    @Index(name="OFFERAUDIT_ORDER_INDEX", columnNames={"ORDER_ID"})
+    @org.hibernate.annotations.Index(name="OFFERAUDIT_ORDER_INDEX", columnNames={"ORDER_ID"})
     protected Long orderId;
     
     @Column(name = "OFFER_CODE_ID")
-    @Index(name="OFFERAUDIT_OFFER_CODE_INDEX", columnNames={"OFFER_CODE_ID"})
+    @org.hibernate.annotations.Index(name="OFFERAUDIT_OFFER_CODE_INDEX", columnNames={"OFFER_CODE_ID"})
     protected Long offerCodeId;
     
     @Column(name = "REDEEMED_DATE")

@@ -19,9 +19,13 @@
  */
 package org.broadleafcommerce.common.util.dao;
 
-import org.hibernate.ejb.Ejb3Configuration;
+import org.hibernate.boot.Metadata;
+import org.hibernate.boot.MetadataSources;
+import org.hibernate.boot.registry.StandardServiceRegistry;
+import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
+import org.hibernate.cfg.Configuration;
 
-import java.util.HashMap;
+import java.util.Properties;
 
 import javax.persistence.spi.PersistenceUnitInfo;
 
@@ -32,24 +36,57 @@ import javax.persistence.spi.PersistenceUnitInfo;
  */
 public class EJB3ConfigurationDaoImpl implements EJB3ConfigurationDao {
 
-    private Ejb3Configuration configuration = null;
+    private Configuration configuration = null;
+    private Metadata metadata = null;
 
     protected PersistenceUnitInfo persistenceUnitInfo;
 
-    public Ejb3Configuration getConfiguration() {
+    private void initConfiguration() {
         synchronized(this) {
             if (configuration == null) {
-                Ejb3Configuration temp = new Ejb3Configuration();
+                Configuration temp = new Configuration();
                 String previousValue = persistenceUnitInfo.getProperties().getProperty("hibernate.hbm2ddl.auto");
                 persistenceUnitInfo.getProperties().setProperty("hibernate.hbm2ddl.auto", "none");
-                configuration = temp.configure(persistenceUnitInfo, new HashMap());
-                configuration.getHibernateConfiguration().buildSessionFactory();
+                Properties props = persistenceUnitInfo.getProperties();
+                for (String name : props.stringPropertyNames()) {
+                    temp.setProperty(name, props.getProperty(name));
+                }
+                for (String className : persistenceUnitInfo.getManagedClassNames()) {
+                    try {
+                        temp.addAnnotatedClass(Class.forName(className));
+                    } catch (ClassNotFoundException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+                StandardServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder()
+                        .applySettings(temp.getProperties())
+                        .build();
+                MetadataSources sources = new MetadataSources(serviceRegistry);
+                for (String className : persistenceUnitInfo.getManagedClassNames()) {
+                    try {
+                        sources.addAnnotatedClass(Class.forName(className));
+                    } catch (ClassNotFoundException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+                metadata = sources.buildMetadata();
+                temp.buildSessionFactory();
                 if (previousValue != null) {
                     persistenceUnitInfo.getProperties().setProperty("hibernate.hbm2ddl.auto", previousValue);
                 }
+                configuration = temp;
             }
         }
+    }
+
+    public Configuration getConfiguration() {
+        initConfiguration();
         return configuration;
+    }
+
+    public Metadata getMetadata() {
+        initConfiguration();
+        return metadata;
     }
 
     public PersistenceUnitInfo getPersistenceUnitInfo() {

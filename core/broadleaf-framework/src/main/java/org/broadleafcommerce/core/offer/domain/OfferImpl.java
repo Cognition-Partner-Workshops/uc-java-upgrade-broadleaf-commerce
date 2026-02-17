@@ -125,7 +125,7 @@ public class OfferImpl implements Offer, AdminMainEntity {
     protected List<OfferCode> offerCodes = new ArrayList<OfferCode>(100);
 
     @Column(name = "OFFER_NAME", nullable=false)
-    @Index(name="OFFER_NAME_INDEX", columnNames={"OFFER_NAME"})
+    @org.hibernate.annotations.Index(name="OFFER_NAME_INDEX", columnNames={"OFFER_NAME"})
     @AdminPresentation(friendlyName = "OfferImpl_Offer_Name", order = 1000, 
         group = Presentation.Group.Name.Description, groupOrder = Presentation.Group.Order.Description,
         prominent = true, gridOrder = 1)
@@ -146,7 +146,7 @@ public class OfferImpl implements Offer, AdminMainEntity {
     protected String marketingMessage;
 
     @Column(name = "OFFER_TYPE", nullable=false)
-    @Index(name="OFFER_TYPE_INDEX", columnNames={"OFFER_TYPE"})
+    @org.hibernate.annotations.Index(name="OFFER_TYPE_INDEX", columnNames={"OFFER_TYPE"})
     @AdminPresentation(friendlyName = "OfferImpl_Offer_Type", order = 3000, 
         group = Presentation.Group.Name.Description, groupOrder = Presentation.Group.Order.Description,
         prominent =  true, gridOrder = 3,
@@ -155,7 +155,7 @@ public class OfferImpl implements Offer, AdminMainEntity {
     protected String type;
 
     @Column(name = "OFFER_DISCOUNT_TYPE")
-    @Index(name="OFFER_DISCOUNT_INDEX", columnNames={"OFFER_DISCOUNT_TYPE"})
+    @org.hibernate.annotations.Index(name="OFFER_DISCOUNT_INDEX", columnNames={"OFFER_DISCOUNT_TYPE"})
     @AdminPresentation(friendlyName = "OfferImpl_Offer_Discount_Type", order = 1000, 
         group = Presentation.Group.Name.Amount, groupOrder = Presentation.Group.Order.Amount,
         requiredOverride = RequiredOverride.REQUIRED,

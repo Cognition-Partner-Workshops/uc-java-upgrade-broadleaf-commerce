@@ -28,7 +28,8 @@ import org.broadleafcommerce.common.web.BroadleafRequestContext;
 import org.hibernate.SessionFactory;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Parameter;
-import org.hibernate.ejb.HibernateEntityManager;
+import org.hibernate.Session;
+import javax.persistence.EntityManager;
 import org.hibernate.metadata.ClassMetadata;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationListener;
@@ -39,7 +40,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.lang.reflect.Field;
 import java.util.List;
 
-import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TableGenerator;
 
@@ -70,7 +70,7 @@ public class SequenceGeneratorCorruptionDetection implements ApplicationListener
     @Transactional("blTransactionManager")
     public void onApplicationEvent(ContextRefreshedEvent event) {
         if (detectSequenceGeneratorInconsistencies) {
-            SessionFactory sessionFactory = ((HibernateEntityManager) em).getSession().getSessionFactory();
+            SessionFactory sessionFactory = em.unwrap(Session.class).getSessionFactory();
             for (Object item : sessionFactory.getAllClassMetadata().values()) {
                 ClassMetadata metadata = (ClassMetadata) item;
                 String idProperty = metadata.getIdentifierPropertyName();

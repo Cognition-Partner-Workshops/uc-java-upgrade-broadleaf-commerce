@@ -84,13 +84,13 @@ public class SkuAvailabilityImpl implements SkuAvailability {
 
     /** The sale price. */
     @Column(name = "SKU_ID")
-    @Index(name="SKUAVAIL_SKU_INDEX", columnNames={"SKU_ID"})
+    @org.hibernate.annotations.Index(name="SKUAVAIL_SKU_INDEX", columnNames={"SKU_ID"})
     @AdminPresentation(friendlyName = "SkuAvailabilityImpl_Sku_ID", visibility = VisibilityEnum.HIDDEN_ALL)
     protected Long skuId;
 
     /** The retail price. */
     @Column(name = "LOCATION_ID")
-    @Index(name="SKUAVAIL_LOCATION_INDEX", columnNames={"LOCATION_ID"})
+    @org.hibernate.annotations.Index(name="SKUAVAIL_LOCATION_INDEX", columnNames={"LOCATION_ID"})
     @AdminPresentation(friendlyName = "SkuAvailabilityImpl_Location_ID", group = "SkuAvailabilityImpl_Description")
     protected Long locationId;
 
@@ -106,7 +106,7 @@ public class SkuAvailabilityImpl implements SkuAvailability {
 
     /** The description. */
     @Column(name = "AVAILABILITY_STATUS")
-    @Index(name="SKUAVAIL_STATUS_INDEX", columnNames={"AVAILABILITY_STATUS"})
+    @org.hibernate.annotations.Index(name="SKUAVAIL_STATUS_INDEX", columnNames={"AVAILABILITY_STATUS"})
     @AdminPresentation(friendlyName = "SkuAvailabilityImpl_Availability_Status", group = "SkuAvailabilityImpl_Description", fieldType= SupportedFieldType.BROADLEAF_ENUMERATION, broadleafEnumeration="org.broadleafcommerce.core.inventory.service.type.AvailabilityStatusType")
     protected String availabilityStatus;
 

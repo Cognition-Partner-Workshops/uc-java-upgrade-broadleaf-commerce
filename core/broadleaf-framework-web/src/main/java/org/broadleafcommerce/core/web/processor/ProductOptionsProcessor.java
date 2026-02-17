@@ -31,8 +31,8 @@ import org.broadleafcommerce.core.catalog.domain.ProductOption;
 import org.broadleafcommerce.core.catalog.domain.ProductOptionValue;
 import org.broadleafcommerce.core.catalog.domain.Sku;
 import org.broadleafcommerce.core.catalog.service.CatalogService;
-import org.thymeleaf.Arguments;
-import org.thymeleaf.dom.Element;
+import org.thymeleaf.context.ITemplateContext;
+import org.thymeleaf.model.IProcessableElementTag;
 import org.thymeleaf.standard.expression.Expression;
 import org.thymeleaf.standard.expression.StandardExpressions;
 
@@ -70,15 +70,10 @@ public class ProductOptionsProcessor extends AbstractModelVariableModifierProces
     }
 
     @Override
-    public int getPrecedence() {
-        return 10000;
-    }
-
-    @Override
-    protected void modifyModelAttributes(Arguments arguments, Element element) {
+    protected void modifyModelAttributes(ITemplateContext arguments, IProcessableElementTag element) {
         Expression expression = (Expression) StandardExpressions.getExpressionParser(arguments.getConfiguration())
-                .parseExpression(arguments.getConfiguration(), arguments, element.getAttributeValue("productId"));
-        Long productId = (Long) expression.execute(arguments.getConfiguration(), arguments);
+                .parseExpression(arguments, element.getAttributeValue("productId"));
+        Long productId = (Long) expression.execute(arguments);
         Product product = catalogService.findProductById(productId);
         if (product != null) {
             addAllProductOptionsToModel(arguments, product);
@@ -86,7 +81,7 @@ public class ProductOptionsProcessor extends AbstractModelVariableModifierProces
         }
     }
     
-    private void addProductOptionPricingToModel(Arguments arguments, Product product) {
+    private void addProductOptionPricingToModel(ITemplateContext arguments, Product product) {
         List<Sku> skus = product.getSkus();
         List<ProductOptionPricingDTO> skuPricing = new ArrayList<ProductOptionPricingDTO>();
         for (Sku sku : skus) {
@@ -115,7 +110,7 @@ public class ProductOptionsProcessor extends AbstractModelVariableModifierProces
         writeJSONToModel(arguments, "skuPricing", skuPricing);
     }
     
-    private void addAllProductOptionsToModel(Arguments arguments, Product product) {
+    private void addAllProductOptionsToModel(ITemplateContext arguments, Product product) {
         List<ProductOption> productOptions = product.getProductOptions();
         List<ProductOptionDTO> dtos = new ArrayList<ProductOptionDTO>();
         for (ProductOption option : productOptions) {
@@ -132,7 +127,7 @@ public class ProductOptionsProcessor extends AbstractModelVariableModifierProces
         writeJSONToModel(arguments, "allProductOptions", dtos);
     }
     
-    private void writeJSONToModel(Arguments arguments, String modelKey, Object o) {
+    private void writeJSONToModel(ITemplateContext arguments, String modelKey, Object o) {
         try {
             String jsonValue = JSON_CACHE.get(o);
             if (jsonValue == null) {
