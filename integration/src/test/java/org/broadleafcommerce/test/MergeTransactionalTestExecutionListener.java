@@ -28,8 +28,6 @@ import org.springframework.test.context.TestContext;
 import org.springframework.test.context.support.AbstractTestExecutionListener;
 import org.springframework.test.context.transaction.AfterTransaction;
 import org.springframework.test.context.transaction.BeforeTransaction;
-import org.springframework.test.context.transaction.TransactionConfiguration;
-import org.springframework.test.context.transaction.TransactionConfigurationAttributes;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionException;
@@ -91,7 +89,6 @@ import java.util.Map;
  * @author Jeff Fischer
  * @author Sam Brannen
  * @author Juergen Hoeller
- * @see TransactionConfiguration
  * @see org.springframework.transaction.annotation.Transactional
  * @see org.springframework.test.annotation.NotTransactional
  * @see org.springframework.test.annotation.Rollback
@@ -105,7 +102,8 @@ public class MergeTransactionalTestExecutionListener extends AbstractTestExecuti
 
     protected final TransactionAttributeSource attributeSource = new AnnotationTransactionAttributeSource();
 
-    private TransactionConfigurationAttributes configAttributes;
+    private String transactionManagerName;
+    private boolean defaultRollback;
 
     private volatile int transactionsStarted = 0;
 
@@ -302,10 +300,10 @@ public class MergeTransactionalTestExecutionListener extends AbstractTestExecuti
      * @throws BeansException if an error occurs while retrieving the transaction manager
      */
     protected final PlatformTransactionManager getTransactionManager(TestContext testContext) {
-        if (this.configAttributes == null) {
-            this.configAttributes = retrieveTransactionConfigurationAttributes(testContext.getTestClass());
+        if (this.transactionManagerName == null) {
+            retrieveTransactionConfigurationAttributes(testContext.getTestClass());
         }
-        String transactionManagerName = this.configAttributes.getTransactionManagerName();
+        String transactionManagerName = this.transactionManagerName;
         try {
             return (PlatformTransactionManager) BaseTest.getContext().getBean(
                     transactionManagerName, PlatformTransactionManager.class);
@@ -328,7 +326,8 @@ public class MergeTransactionalTestExecutionListener extends AbstractTestExecuti
      * @throws Exception if an error occurs while determining the default rollback flag
      */
     protected final boolean isDefaultRollback(TestContext testContext) throws Exception {
-        return retrieveTransactionConfigurationAttributes(testContext.getTestClass()).isDefaultRollback();
+        retrieveTransactionConfigurationAttributes(testContext.getTestClass());
+        return this.defaultRollback;
     }
 
     /**
@@ -461,30 +460,19 @@ public class MergeTransactionalTestExecutionListener extends AbstractTestExecuti
      * the configuration attributes should be retrieved
      * @return a new TransactionConfigurationAttributes instance
      */
-    private TransactionConfigurationAttributes retrieveTransactionConfigurationAttributes(Class<?> clazz) {
-        Class<TransactionConfiguration> annotationType = TransactionConfiguration.class;
-        TransactionConfiguration config = clazz.getAnnotation(annotationType);
+    private void retrieveTransactionConfigurationAttributes(Class<?> clazz) {
+        Transactional txAnnotation = AnnotationUtils.findAnnotation(clazz, Transactional.class);
+        if (txAnnotation != null && !txAnnotation.transactionManager().isEmpty()) {
+            this.transactionManagerName = txAnnotation.transactionManager();
+        } else {
+            this.transactionManagerName = "blTransactionManager";
+        }
+        Rollback rollbackAnnotation = AnnotationUtils.findAnnotation(clazz, Rollback.class);
+        this.defaultRollback = (rollbackAnnotation == null) || rollbackAnnotation.value();
         if (logger.isDebugEnabled()) {
-            logger.debug("Retrieved @TransactionConfiguration [" + config + "] for test class [" + clazz + "]");
+            logger.debug("Retrieved transaction config [manager=" + this.transactionManagerName +
+                    ", defaultRollback=" + this.defaultRollback + "] for class [" + clazz + "]");
         }
-
-        String transactionManagerName;
-        boolean defaultRollback;
-        if (config != null) {
-            transactionManagerName = config.transactionManager();
-            defaultRollback = config.defaultRollback();
-        }
-        else {
-            transactionManagerName = (String) AnnotationUtils.getDefaultValue(annotationType, "transactionManager");
-            defaultRollback = (Boolean) AnnotationUtils.getDefaultValue(annotationType, "defaultRollback");
-        }
-
-        TransactionConfigurationAttributes configAttributes =
-                new TransactionConfigurationAttributes(transactionManagerName, defaultRollback);
-        if (logger.isDebugEnabled()) {
-            logger.debug("Retrieved TransactionConfigurationAttributes [" + configAttributes + "] for class [" + clazz + "]");
-        }
-        return configAttributes;
     }
 
 

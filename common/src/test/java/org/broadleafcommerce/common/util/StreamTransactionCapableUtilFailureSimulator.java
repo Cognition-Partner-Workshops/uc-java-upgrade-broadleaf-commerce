@@ -20,7 +20,7 @@
 package org.broadleafcommerce.common.util;
 
 import org.broadleafcommerce.common.web.BroadleafRequestContext;
-import org.hibernate.ejb.EntityManagerFactory;
+import org.hibernate.SessionFactory;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 
@@ -60,8 +60,8 @@ public class StreamTransactionCapableUtilFailureSimulator extends StreamingTrans
         if (context.getAdditionalProperties().containsKey(FAILURE_MODE_KEY)) {
             String failureModePU = (String) context.getAdditionalProperties().get(FAILURE_MODE_PU);
             String checkClassName = failureModePU.equals("blPU")?blPUCheckClassName:blEventPUCheckClassName;
-            if (((EntityManagerFactory) ((JpaTransactionManager) transactionManager).getEntityManagerFactory())
-                                    .getSessionFactory().getAllClassMetadata().containsKey(checkClassName)){
+            SessionFactory sf = ((JpaTransactionManager) transactionManager).getEntityManagerFactory().unwrap(SessionFactory.class);
+            if (sf.getAllClassMetadata().containsKey(checkClassName)){
                 throw (RuntimeException) context.getAdditionalProperties().get(FAILURE_MODE_EXCEPTION);
             }
         }

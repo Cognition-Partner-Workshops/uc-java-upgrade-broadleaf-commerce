@@ -23,7 +23,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.ContextHierarchy;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
-import org.springframework.test.context.transaction.TransactionConfiguration;
 import org.springframework.test.context.transaction.TransactionalTestExecutionListener;
 import org.springframework.test.context.web.WebAppConfiguration;
 
@@ -38,7 +37,6 @@ import org.springframework.test.context.web.WebAppConfiguration;
  * @author Jeff Fischer
  *
  */
-@TransactionConfiguration(transactionManager = "blTransactionManager", defaultRollback = true)
 @ContextHierarchy({
 @ContextConfiguration(name = "adminRoot",
     locations = {"classpath:/bl-open-admin-contentClient-applicationContext.xml",
