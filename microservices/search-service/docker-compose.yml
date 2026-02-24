@@ -1,0 +1,115 @@
+# =============================================================================
+# Docker Compose for local development of the Broadleaf Search Microservice
+# =============================================================================
+# Spins up:
+#   1. The search microservice container
+#   2. A standalone Solr instance with pre-configured cores (primary + reindex)
+# =============================================================================
+#
+# Usage:
+#   docker-compose up -d          # Start all services
+#   docker-compose logs -f search # Follow search service logs
+#   docker-compose down           # Stop and remove containers
+#
+# The search service will be available at: http://localhost:8180
+# Solr Admin UI will be available at:      http://localhost:8983/solr
+# =============================================================================
+
+version: "3.8"
+
+services:
+  # ---------------------------------------------------------------------------
+  # Apache Solr - Search Engine
+  # ---------------------------------------------------------------------------
+  solr:
+    image: solr:8.11
+    container_name: blc-solr
+    ports:
+      - "8983:8983"
+    volumes:
+      - solr_data:/var/solr
+    environment:
+      - SOLR_HEAP=512m
+    # Create the primary and reindex cores on first startup
+    command: >
+      bash -c "
+        precreate-core primary;
+        precreate-core reindex;
+        exec solr-foreground
+      "
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8983/solr/admin/cores?action=STATUS || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - search-network
+
+  # ---------------------------------------------------------------------------
+  # Broadleaf Search Microservice
+  # ---------------------------------------------------------------------------
+  search:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: blc-search-service
+    ports:
+      - "8180:8180"
+    environment:
+      # Server
+      - SERVER_PORT=8180
+
+      # Solr connection (standalone mode for local dev)
+      - SOLR_MODE=standalone
+      - SOLR_URL=http://solr:8983/solr
+      - SOLR_PRIMARY_NAME=primary
+      - SOLR_REINDEX_NAME=reindex
+
+      # SolrCloud settings (not used in standalone mode, but configurable)
+      - SOLR_CLOUD_ZK_HOST=
+      - SOLR_CLOUD_CONFIG_NAME=blc
+      - SOLR_CLOUD_DEFAULT_NUM_SHARDS=2
+      - SOLR_CLOUD_DEFAULT_REPLICATION_FACTOR=1
+
+      # Indexing
+      - SOLR_INDEX_USE_SKU=false
+      - SOLR_INDEX_PAGE_SIZE=100
+      - SOLR_INDEX_COMMIT=true
+      - SOLR_INDEX_SOFT_COMMIT=false
+      - SOLR_INDEX_WAIT_SEARCHER=true
+      - SOLR_INDEX_WAIT_FLUSH=true
+
+      # Catalog database (H2 in-memory for local dev)
+      # For production, point to the monolith's database:
+      #   CATALOG_DB_URL=jdbc:mysql://host:3306/broadleaf
+      #   CATALOG_DB_USERNAME=readonly_user
+      #   CATALOG_DB_PASSWORD=secret
+      #   CATALOG_DB_DRIVER=com.mysql.cj.jdbc.Driver
+      - CATALOG_DB_URL=jdbc:h2:mem:searchdb;DB_CLOSE_DELAY=-1
+      - CATALOG_DB_USERNAME=sa
+      - CATALOG_DB_PASSWORD=
+      - CATALOG_DB_DRIVER=org.h2.Driver
+      - JPA_DDL_AUTO=update
+
+      # Logging
+      - LOGGING_LEVEL_COM_BROADLEAFCOMMERCE_SEARCH=DEBUG
+    depends_on:
+      solr:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8180/actuator/health || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - search-network
+
+volumes:
+  solr_data:
+    driver: local
+
+networks:
+  search-network:
+    driver: bridge
