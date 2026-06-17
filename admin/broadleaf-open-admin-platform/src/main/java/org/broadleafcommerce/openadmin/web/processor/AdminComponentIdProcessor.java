@@ -23,40 +23,40 @@ import org.apache.commons.lang3.StringUtils;
 import org.broadleafcommerce.openadmin.web.form.component.ListGrid;
 import org.broadleafcommerce.openadmin.web.form.entity.Field;
 import org.springframework.stereotype.Component;
-import org.thymeleaf.Arguments;
-import org.thymeleaf.dom.Element;
-import org.thymeleaf.processor.attr.AbstractAttributeModifierAttrProcessor;
-import org.thymeleaf.standard.expression.Expression;
+import org.thymeleaf.context.ITemplateContext;
+import org.thymeleaf.engine.AttributeName;
+import org.thymeleaf.model.IProcessableElementTag;
+import org.thymeleaf.processor.element.AbstractAttributeTagProcessor;
+import org.thymeleaf.processor.element.IElementTagStructureHandler;
+import org.thymeleaf.standard.expression.IStandardExpression;
 import org.thymeleaf.standard.expression.StandardExpressions;
-
-import java.util.HashMap;
-import java.util.Map;
+import org.thymeleaf.templatemode.TemplateMode;
 
 /**
  * A Thymeleaf processor that will generate the appropriate ID for a given admin component.
  * 
  * @author Andre Azzolini (apazzolini)
  */
+// TODO(java21-migration): Thymeleaf 3 removed the DOM-based AbstractAttributeModifierAttrProcessor (org.thymeleaf.dom.*,
+// org.thymeleaf.Arguments). Attribute processors now extend AbstractAttributeTagProcessor and mutate the event-based
+// model via IElementTagStructureHandler; the SUBSTITUTION/removeAttributeIfEmpty/recomputeProcessorsAfterExecution hooks
+// are replaced by structureHandler.setAttribute and the removeAttribute constructor flag.
 @Component("blAdminComponentIdProcessor")
-public class AdminComponentIdProcessor extends AbstractAttributeModifierAttrProcessor {
+public class AdminComponentIdProcessor extends AbstractAttributeTagProcessor {
 
     /**
      * Sets the name of this processor to be used in Thymeleaf template
      */
     public AdminComponentIdProcessor() {
-        super("component_id");
+        super(TemplateMode.HTML, "blc_admin", null, false, "component_id", true, 10002, true);
     }
 
     @Override
-    public int getPrecedence() {
-        return 10002;
-    }
-
-    @Override
-    protected Map<String, String> getModifiedAttributeValues(Arguments arguments, Element element, String attributeName) {
-        Expression expression = (Expression) StandardExpressions.getExpressionParser(arguments.getConfiguration())
-                .parseExpression(arguments.getConfiguration(), arguments, element.getAttributeValue(attributeName));
-        Object component = expression.execute(arguments.getConfiguration(), arguments);
+    protected void doProcess(ITemplateContext context, IProcessableElementTag tag, AttributeName attributeName,
+            String attributeValue, IElementTagStructureHandler structureHandler) {
+        IStandardExpression expression = StandardExpressions.getExpressionParser(context.getConfiguration())
+                .parseExpression(context, attributeValue);
+        Object component = expression.execute(context);
 
         String fieldName = "";
         String id = "";
@@ -79,29 +79,12 @@ public class AdminComponentIdProcessor extends AbstractAttributeModifierAttrProc
             id = cleanCssIdString(fieldName);
         }
         
-        Map<String, String> attrs = new HashMap<String, String>();
-        attrs.put("id", id);
-        return attrs;
+        structureHandler.setAttribute("id", id);
     }
 
     protected String cleanCssIdString(String in) {
         in = in.replaceAll("[^a-zA-Z0-9-]", "-");
         return in;
-    }
-
-    @Override
-    protected ModificationType getModificationType(Arguments arguments, Element element, String attributeName, String newAttributeName) {
-        return ModificationType.SUBSTITUTION;
-    }
-
-    @Override
-    protected boolean removeAttributeIfEmpty(Arguments arguments, Element element, String attributeName, String newAttributeName) {
-        return true;
-    }
-
-    @Override
-    protected boolean recomputeProcessorsAfterExecution(Arguments arguments, Element element, String attributeName) {
-        return false;
     }
 
 }

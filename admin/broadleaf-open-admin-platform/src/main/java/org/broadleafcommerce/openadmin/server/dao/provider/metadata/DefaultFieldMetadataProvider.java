@@ -42,9 +42,13 @@ import org.broadleafcommerce.openadmin.server.dao.provider.metadata.request.AddM
 import org.broadleafcommerce.openadmin.server.dao.provider.metadata.request.AddMetadataRequest;
 import org.broadleafcommerce.openadmin.server.dao.provider.metadata.request.OverrideViaXmlRequest;
 import org.broadleafcommerce.openadmin.server.service.type.FieldProviderResponse;
+import org.broadleafcommerce.openadmin.server.dao.DynamicEntityDao;
+import org.hibernate.SessionFactory;
+import org.hibernate.engine.spi.SessionFactoryImplementor;
 import org.hibernate.mapping.Column;
 import org.hibernate.mapping.Property;
-import org.hibernate.metadata.ClassMetadata;
+import org.hibernate.metamodel.MappingMetamodel;
+import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.type.Type;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -141,7 +145,7 @@ public class DefaultFieldMetadataProvider extends BasicFieldMetadataProvider {
             Column column = null;
             for (Property property : addMetadataFromMappingDataRequest.getComponentProperties()) {
                 if (property.getName().equals(addMetadataFromMappingDataRequest.getPropertyName())) {
-                    Object columnObject = property.getColumnIterator().next();
+                    Object columnObject = property.getSelectables().get(0);
                     if (columnObject instanceof Column) {
                         column = (Column) columnObject;
                     }
@@ -149,7 +153,7 @@ public class DefaultFieldMetadataProvider extends BasicFieldMetadataProvider {
                 }
             }
             if (column != null) {
-                fieldMetadata.setLength(column.getLength());
+                fieldMetadata.setLength(column.getLength() == null ? null : column.getLength().intValue());
                 fieldMetadata.setScale(column.getScale());
                 fieldMetadata.setPrecision(column.getPrecision());
                 fieldMetadata.setRequired(!column.isNullable());
@@ -335,14 +339,14 @@ public class DefaultFieldMetadataProvider extends BasicFieldMetadataProvider {
                             addMetadataFromFieldTypeRequest.getForeignField() != null &&
                                     addMetadataFromFieldTypeRequest.isPropertyForeignKey()
                     ) {
-                ClassMetadata foreignMetadata;
+                EntityPersister foreignMetadata;
                 String foreignKeyClass;
                 String lookupDisplayProperty;
                 if (addMetadataFromFieldTypeRequest.getForeignField() == null) {
                     Class<?>[] entities = addMetadataFromFieldTypeRequest.getDynamicEntityDao().
                             getAllPolymorphicEntitiesFromCeiling(addMetadataFromFieldTypeRequest.getType().getReturnedClass());
-                    foreignMetadata = addMetadataFromFieldTypeRequest.getDynamicEntityDao().getSessionFactory().getClassMetadata(entities
-                            [entities.length - 1]);
+                    foreignMetadata = getEntityPersister(addMetadataFromFieldTypeRequest.getDynamicEntityDao(),
+                            entities[entities.length - 1]);
                     foreignKeyClass = entities[entities.length - 1].getName();
                     lookupDisplayProperty = ((BasicFieldMetadata) addMetadataFromFieldTypeRequest.
                             getPresentationAttribute()).getLookupDisplayProperty();
@@ -355,9 +359,8 @@ public class DefaultFieldMetadataProvider extends BasicFieldMetadataProvider {
                     }
                 } else {
                     try {
-                        foreignMetadata = addMetadataFromFieldTypeRequest.getDynamicEntityDao().getSessionFactory().
-                                getClassMetadata(Class.forName(addMetadataFromFieldTypeRequest.getForeignField()
-                                .getForeignKeyClass()));
+                        foreignMetadata = getEntityPersister(addMetadataFromFieldTypeRequest.getDynamicEntityDao(),
+                                Class.forName(addMetadataFromFieldTypeRequest.getForeignField().getForeignKeyClass()));
                         foreignKeyClass = addMetadataFromFieldTypeRequest.getForeignField().getForeignKeyClass();
                         lookupDisplayProperty = addMetadataFromFieldTypeRequest.getForeignField().getDisplayValueProperty();
                         if (StringUtils.isEmpty(lookupDisplayProperty) &&
@@ -417,14 +420,14 @@ public class DefaultFieldMetadataProvider extends BasicFieldMetadataProvider {
                     throw new IllegalArgumentException("Only ManyToOne and OneToOne fields can be marked as a " +
                             "SupportedFieldType of ADDITIONAL_FOREIGN_KEY");
                 }
-                ClassMetadata foreignMetadata;
+                EntityPersister foreignMetadata;
                 String foreignKeyClass;
                 String lookupDisplayProperty;
                 if (addMetadataFromFieldTypeRequest.getAdditionalForeignKeyIndexPosition() < 0) {
                     Class<?>[] entities = addMetadataFromFieldTypeRequest.getDynamicEntityDao().getAllPolymorphicEntitiesFromCeiling
                             (addMetadataFromFieldTypeRequest.getType().getReturnedClass());
-                    foreignMetadata = addMetadataFromFieldTypeRequest.getDynamicEntityDao().getSessionFactory().
-                            getClassMetadata(entities[entities.length - 1]);
+                    foreignMetadata = getEntityPersister(addMetadataFromFieldTypeRequest.getDynamicEntityDao(),
+                            entities[entities.length - 1]);
                     foreignKeyClass = entities[entities.length - 1].getName();
                     lookupDisplayProperty = ((BasicFieldMetadata) addMetadataFromFieldTypeRequest.getPresentationAttribute()).
                             getLookupDisplayProperty();
@@ -437,8 +440,8 @@ public class DefaultFieldMetadataProvider extends BasicFieldMetadataProvider {
                     }
                 } else {
                     try {
-                        foreignMetadata = addMetadataFromFieldTypeRequest.getDynamicEntityDao().getSessionFactory().
-                                getClassMetadata(Class.forName(addMetadataFromFieldTypeRequest.getAdditionalForeignFields()
+                        foreignMetadata = getEntityPersister(addMetadataFromFieldTypeRequest.getDynamicEntityDao(),
+                                Class.forName(addMetadataFromFieldTypeRequest.getAdditionalForeignFields()
                                         [addMetadataFromFieldTypeRequest.getAdditionalForeignKeyIndexPosition()].getForeignKeyClass()));
                         foreignKeyClass = addMetadataFromFieldTypeRequest.getAdditionalForeignFields()[
                                 addMetadataFromFieldTypeRequest.getAdditionalForeignKeyIndexPosition()].getForeignKeyClass();
@@ -496,6 +499,15 @@ public class DefaultFieldMetadataProvider extends BasicFieldMetadataProvider {
             return FieldProviderResponse.HANDLED;
         }
         return FieldProviderResponse.NOT_HANDLED;
+    }
+
+    // TODO(java21-migration): Hibernate 6 removed SessionFactory#getClassMetadata(Class) and the org.hibernate.metadata
+    // .ClassMetadata API. The runtime entity mapping is now exposed as an EntityPersister obtained from the
+    // SessionFactory's MappingMetamodel; getIdentifierType()/getIdentifierPropertyName() are still available on it.
+    protected EntityPersister getEntityPersister(DynamicEntityDao dynamicEntityDao, Class<?> entityClass) {
+        SessionFactory sessionFactory = dynamicEntityDao.getSessionFactory();
+        MappingMetamodel mappingMetamodel = sessionFactory.unwrap(SessionFactoryImplementor.class).getMappingMetamodel();
+        return mappingMetamodel.getEntityDescriptor(entityClass);
     }
 
 }

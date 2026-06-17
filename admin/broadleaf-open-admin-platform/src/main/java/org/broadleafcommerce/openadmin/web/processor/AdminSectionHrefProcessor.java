@@ -19,19 +19,19 @@
  */
 package org.broadleafcommerce.openadmin.web.processor;
 
+import org.broadleafcommerce.common.web.BroadleafRequestContext;
 import org.broadleafcommerce.openadmin.server.security.domain.AdminSection;
 import org.springframework.stereotype.Component;
-import org.thymeleaf.Arguments;
-import org.thymeleaf.dom.Element;
-import org.thymeleaf.processor.attr.AbstractAttributeModifierAttrProcessor;
-import org.thymeleaf.spring4.context.SpringWebContext;
-import org.thymeleaf.standard.expression.Expression;
+import org.thymeleaf.context.ITemplateContext;
+import org.thymeleaf.engine.AttributeName;
+import org.thymeleaf.model.IProcessableElementTag;
+import org.thymeleaf.processor.element.AbstractAttributeTagProcessor;
+import org.thymeleaf.processor.element.IElementTagStructureHandler;
+import org.thymeleaf.standard.expression.IStandardExpression;
 import org.thymeleaf.standard.expression.StandardExpressions;
+import org.thymeleaf.templatemode.TemplateMode;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * A Thymeleaf processor that will generate the HREF of a given Admin Section.
@@ -39,52 +39,35 @@ import javax.servlet.http.HttpServletRequest;
  *
  * @author elbertbautista
  */
+// TODO(java21-migration): Thymeleaf 3 removed the DOM-based AbstractAttributeModifierAttrProcessor and the
+// org.thymeleaf.spring4 SpringWebContext. Attribute processors now extend AbstractAttributeTagProcessor and mutate the
+// event-based model via IElementTagStructureHandler; the current HttpServletRequest is obtained from the
+// BroadleafRequestContext rather than casting the Thymeleaf context.
 @Component("blAdminSectionHrefProcessor")
-public class AdminSectionHrefProcessor extends AbstractAttributeModifierAttrProcessor {
+public class AdminSectionHrefProcessor extends AbstractAttributeTagProcessor {
 
     /**
      * Sets the name of this processor to be used in Thymeleaf template
      */
     public AdminSectionHrefProcessor() {
-        super("admin_section_href");
+        super(TemplateMode.HTML, "blc_admin", null, false, "admin_section_href", true, 10002, true);
     }
 
     @Override
-    public int getPrecedence() {
-        return 10002;
-    }
-
-    @Override
-    protected Map<String, String> getModifiedAttributeValues(Arguments arguments, Element element, String attributeName) {
+    protected void doProcess(ITemplateContext context, IProcessableElementTag tag, AttributeName attributeName,
+            String attributeValue, IElementTagStructureHandler structureHandler) {
         String href = "#";
         
-        Expression expression = (Expression) StandardExpressions.getExpressionParser(arguments.getConfiguration())
-                .parseExpression(arguments.getConfiguration(), arguments, element.getAttributeValue(attributeName));
-        AdminSection section = (AdminSection) expression.execute(arguments.getConfiguration(), arguments);
+        IStandardExpression expression = StandardExpressions.getExpressionParser(context.getConfiguration())
+                .parseExpression(context, attributeValue);
+        AdminSection section = (AdminSection) expression.execute(context);
         if (section != null) {
-            HttpServletRequest request = ((SpringWebContext) arguments.getContext()).getHttpServletRequest();
+            HttpServletRequest request = BroadleafRequestContext.getBroadleafRequestContext().getRequest();
 
             href = request.getContextPath() + section.getUrl();
         }
         
-        Map<String, String> attrs = new HashMap<String, String>();
-        attrs.put("href", href);
-        return attrs;
-    }
-
-    @Override
-    protected ModificationType getModificationType(Arguments arguments, Element element, String attributeName, String newAttributeName) {
-        return ModificationType.SUBSTITUTION;
-    }
-
-    @Override
-    protected boolean removeAttributeIfEmpty(Arguments arguments, Element element, String attributeName, String newAttributeName) {
-        return true;
-    }
-
-    @Override
-    protected boolean recomputeProcessorsAfterExecution(Arguments arguments, Element element, String attributeName) {
-        return false;
+        structureHandler.setAttribute("href", href);
     }
 
 }

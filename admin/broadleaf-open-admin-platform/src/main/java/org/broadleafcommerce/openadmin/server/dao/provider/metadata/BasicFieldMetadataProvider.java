@@ -22,6 +22,7 @@ package org.broadleafcommerce.openadmin.server.dao.provider.metadata;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -61,11 +62,16 @@ import org.broadleafcommerce.openadmin.server.dao.provider.metadata.request.AddM
 import org.broadleafcommerce.openadmin.server.dao.provider.metadata.request.OverrideViaAnnotationRequest;
 import org.broadleafcommerce.openadmin.server.dao.provider.metadata.request.OverrideViaXmlRequest;
 import org.broadleafcommerce.openadmin.server.service.type.FieldProviderResponse;
-import org.hibernate.Criteria;
-import org.hibernate.criterion.Restrictions;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.From;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 
 /**
  * @author Jeff Fischer
@@ -767,26 +773,35 @@ public class BasicFieldMetadataProvider extends FieldMetadataProviderAdapter {
 
     protected void buildDataDrivenList(BasicFieldMetadata metadata, DynamicEntityDao dynamicEntityDao) {
         try {
-            Criteria criteria = dynamicEntityDao.createCriteria(Class.forName(metadata.getOptionListEntity()));
+            EntityManager em = dynamicEntityDao.getStandardEntityManager();
+            CriteriaBuilder builder = em.getCriteriaBuilder();
+            Class<?> optionEntityClass = Class.forName(metadata.getOptionListEntity());
+            CriteriaQuery<?> criteria = builder.createQuery(optionEntityClass);
+            Root<?> root = criteria.from(optionEntityClass);
+            List<Predicate> predicates = new ArrayList<Predicate>();
             if (metadata.getOptionListEntity().equals(DataDrivenEnumerationValueImpl.class.getName())) {
-                criteria.add(Restrictions.eq("hidden", false));
+                predicates.add(builder.equal(root.get("hidden"), false));
             }
             if (metadata.getOptionFilterParams() != null) {
                 for (String[] param : metadata.getOptionFilterParams()) {
-                    Criteria current = criteria;
                     String key = param[0];
                     if (!key.equals(".ignore")) {
+                        From<?, ?> current = root;
+                        String propertyName = key;
                         if (key.contains(".")) {
                             String[] parts = key.split("\\.");
                             for (int j = 0; j < parts.length - 1; j++) {
-                                current = current.createCriteria(parts[j], parts[j]);
+                                current = current.join(parts[j]);
                             }
+                            propertyName = parts[parts.length - 1];
                         }
-                        current.add(Restrictions.eq(key, convertType(param[1], OptionFilterParamType.valueOf(param[2]))));
+                        predicates.add(builder.equal(current.get(propertyName),
+                                convertType(param[1], OptionFilterParamType.valueOf(param[2]))));
                     }
                 }
             }
-            List results = criteria.list();
+            criteria.where(predicates.toArray(new Predicate[predicates.size()]));
+            List<?> results = em.createQuery(criteria).getResultList();
             String[][] enumerationValues = new String[results.size()][2];
             int j = 0;
             for (Object param : results) {
