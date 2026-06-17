@@ -98,7 +98,7 @@ public class GoogleAnalyticsProcessor extends AbstractModelVariableModifierProce
         }
         // This element is self-closing and "analytics" is consumed by a sibling <script>, so the value
         // must be request-scoped (a body-scoped local variable would not be visible outside this element).
-        addToRequest(context, "analytics", analytics(getWebPropertyId(), order));
+        addToRequest("analytics", analytics(getWebPropertyId(), order));
     }
 
     /**

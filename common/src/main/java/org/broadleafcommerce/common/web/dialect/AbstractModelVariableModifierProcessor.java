@@ -19,8 +19,8 @@
  */
 package org.broadleafcommerce.common.web.dialect;
 
+import org.broadleafcommerce.common.web.BroadleafRequestContext;
 import org.thymeleaf.context.ITemplateContext;
-import org.thymeleaf.context.IWebContext;
 import org.thymeleaf.model.IProcessableElementTag;
 import org.thymeleaf.processor.element.AbstractElementTagProcessor;
 import org.thymeleaf.processor.element.IElementTagStructureHandler;
@@ -29,6 +29,8 @@ import org.thymeleaf.templatemode.TemplateMode;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * @author apazzolini
@@ -81,15 +83,18 @@ public abstract class AbstractModelVariableModifierProcessor extends AbstractEle
      * sibling elements. {@link #addToModel} contributes a Thymeleaf 3 local variable which is scoped
      * to the host element's body; processors whose element is self-closing and whose value is consumed
      * by following sibling markup must use this method instead so the value survives outside the body.
-     * Outside of a web request there is no request scope, so the value is not added.
+     * Thymeleaf 3's web context resolves ${var} from the request attributes, so setting the attribute
+     * on the current request makes the value visible to the rest of the page. Outside of a web request
+     * there is no request scope, so the value is not added.
      *
-     * @param context the template context for the current request
      * @param key the key to add to the request
      * @param value the value represented by the key
      */
-    protected void addToRequest(ITemplateContext context, String key, Object value) {
-        if (context instanceof IWebContext) {
-            ((IWebContext) context).getExchange().setAttributeValue(key, value);
+    protected void addToRequest(String key, Object value) {
+        BroadleafRequestContext brc = BroadleafRequestContext.getBroadleafRequestContext();
+        HttpServletRequest request = (brc != null) ? brc.getRequest() : null;
+        if (request != null) {
+            request.setAttribute(key, value);
         }
     }
 

@@ -76,9 +76,9 @@ public class NamedOrderProcessor extends AbstractModelVariableModifierProcessor 
         // This element is self-closing and orderVar is consumed by sibling markup, so the value must be
         // request-scoped (a body-scoped local variable would not be visible outside this element).
         if (order != null) {
-            addToRequest(context, orderVar, order);
+            addToRequest(orderVar, order);
         } else {
-            addToRequest(context, orderVar, new NullOrderImpl());
+            addToRequest(orderVar, new NullOrderImpl());
         }
     }
 }
