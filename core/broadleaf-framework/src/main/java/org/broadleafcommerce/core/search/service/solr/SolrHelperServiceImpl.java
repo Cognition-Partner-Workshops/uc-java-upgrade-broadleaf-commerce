@@ -29,10 +29,8 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrQuery.ORDER;
 import org.apache.solr.client.solrj.SolrQuery.SortClause;
-import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.impl.CloudSolrServer;
-import org.apache.solr.client.solrj.request.CollectionAdminRequest;
 import org.apache.solr.client.solrj.request.CoreAdminRequest;
 import org.apache.solr.client.solrj.response.FacetField;
 import org.apache.solr.client.solrj.response.FacetField.Count;
@@ -42,7 +40,6 @@ import org.apache.solr.client.solrj.response.GroupResponse;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.common.SolrDocument;
 import org.apache.solr.common.SolrInputDocument;
-import org.apache.solr.common.cloud.Aliases;
 import org.apache.solr.common.params.CoreAdminParams.CoreAdminAction;
 import org.broadleafcommerce.common.exception.ServiceException;
 import org.broadleafcommerce.common.extension.ExtensionResultStatusType;
@@ -110,33 +107,15 @@ public class SolrHelperServiceImpl implements SolrHelperService {
     @Override
     public synchronized void swapActiveCores() throws ServiceException {
         if (SolrContext.isSolrCloudMode()) {
-            CloudSolrServer primary = (CloudSolrServer) SolrContext.getServer();
-            CloudSolrServer reindex = (CloudSolrServer) SolrContext.getReindexServer();
-            try {
-                primary.connect();
-                Aliases aliases = primary.getZkStateReader().getAliases();
-                Map<String, String> aliasCollectionMap = aliases.getCollectionAliasMap();
-                if (aliasCollectionMap == null || !aliasCollectionMap.containsKey(primary.getDefaultCollection())
-                        || !aliasCollectionMap.containsKey(reindex.getDefaultCollection())) {
-                    throw new IllegalStateException("Could not determine the PRIMARY or REINDEX "
-                            + "collection or collections from the Solr aliases.");
-                }
-
-                String primaryCollectionName = aliasCollectionMap.get(primary.getDefaultCollection());
-                //Do this just in case primary is aliased to more than one collection
-                primaryCollectionName = primaryCollectionName.split(",")[0];
-
-                String reindexCollectionName = aliasCollectionMap.get(reindex.getDefaultCollection());
-                //Do this just in case primary is aliased to more than one collection
-                reindexCollectionName = reindexCollectionName.split(",")[0];
-
-                //Essentially "swap cores" here by reassigning the aliases
-                CollectionAdminRequest.createAlias(primary.getDefaultCollection(), reindexCollectionName, primary);
-                CollectionAdminRequest.createAlias(reindex.getDefaultCollection(), primaryCollectionName, primary);
-            } catch (Exception e) {
-                LOG.error("An exception occured swapping cores.", e);
-                throw new ServiceException("Unable to swap SolrCloud collections after a full reindex.", e);
-            }
+            // TODO(java21-migration): SolrJ 9 removed CloudSolrClient#getZkStateReader() and
+            // #getDefaultCollection(), and replaced CollectionAdminRequest.createAlias(alias, collection, server)
+            // with a builder that is executed via CreateAlias#process(client). The original SolrCloud swap read
+            // the PRIMARY/REINDEX alias->collection map from ZooKeeper and re-pointed the two aliases to swap the
+            // active and reindex collections. Reimplement this against the Solr 9 ClusterStateProvider /
+            // CollectionAdminRequest API. Until then fail loudly rather than silently skipping the swap so a
+            // misconfigured SolrCloud reindex does not appear to succeed.
+            throw new ServiceException("SolrCloud collection-alias swap has not yet been migrated to the Solr 9 "
+                    + "SolrJ API.");
         } else {
             if (SolrContext.isSingleCoreMode()) {
                 LOG.debug("In single core mode. There are no cores to swap.");
@@ -402,7 +381,7 @@ public class SolrHelperServiceImpl implements SolrHelperService {
     }
 
     @Override
-    public void optimizeIndex(SolrServer server) throws ServiceException, IOException {
+    public void optimizeIndex(SolrClient server) throws ServiceException, IOException {
         try {
             if (LOG.isDebugEnabled()) {
                 LOG.debug("Optimizing the index...");

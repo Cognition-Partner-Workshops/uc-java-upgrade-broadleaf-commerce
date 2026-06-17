@@ -22,7 +22,6 @@ package org.broadleafcommerce.core.web.resolver;
 import org.broadleafcommerce.common.extension.ExtensionHandler;
 import org.broadleafcommerce.common.extension.ExtensionResultHolder;
 import org.broadleafcommerce.common.extension.ExtensionResultStatusType;
-import org.thymeleaf.TemplateProcessingParameters;
 
 import java.io.InputStream;
 
@@ -32,6 +31,9 @@ import java.io.InputStream;
  * 
  * @author Andre Azzolini (apazzolini), bpolster
  */
+// TODO(java21-migration): Thymeleaf 3 removed org.thymeleaf.TemplateProcessingParameters (and the whole
+// IResourceResolver SPI). The resolveResource contract previously received the TemplateProcessingParameters; it now
+// receives only the resource name, which is the value the database-backed extension implementations actually keyed on.
 public interface DatabaseResourceResolverExtensionHandler extends ExtensionHandler {
     
     public static final String IS_KEY = "IS_KEY";
@@ -43,11 +45,9 @@ public interface DatabaseResourceResolverExtensionHandler extends ExtensionHandl
      * contents.
      * 
      * @param erh
-     * @param params
      * @param resourceName
      * @return whether or not a resource was resolved
      */
-    public ExtensionResultStatusType resolveResource(ExtensionResultHolder erh, 
-            TemplateProcessingParameters params, String resourceName);
+    public ExtensionResultStatusType resolveResource(ExtensionResultHolder erh, String resourceName);
 
 }

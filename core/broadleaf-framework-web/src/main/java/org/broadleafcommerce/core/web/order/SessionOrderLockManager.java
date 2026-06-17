@@ -31,8 +31,7 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.context.request.ServletWebRequest;
 
-import com.googlecode.concurrentlinkedhashmap.ConcurrentLinkedHashMap;
-
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -52,9 +51,11 @@ public class SessionOrderLockManager implements OrderLockManager, ApplicationLis
     private static final ConcurrentMap<String, ReentrantLock> SESSION_LOCKS;
     
     static {
-        SESSION_LOCKS = new ConcurrentLinkedHashMap.Builder<String, ReentrantLock>()
-            .maximumWeightedCapacity(10000)
-            .build();
+        // TODO(java21-migration): previously used ConcurrentLinkedHashMap with maximumWeightedCapacity(10000)
+        // for bounded LRU eviction. The concurrentlinkedhashmap dependency is no longer available; replaced
+        // with plain ConcurrentHashMap (unbounded). Consider using Caffeine's ConcurrentLinkedHashMap or a
+        // manually-bounded map if memory pressure from lock accumulation becomes a concern.
+        SESSION_LOCKS = new ConcurrentHashMap<>();
     }
 
     /**

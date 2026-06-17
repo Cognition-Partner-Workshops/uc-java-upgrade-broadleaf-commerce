@@ -19,15 +19,13 @@
  */
 package org.broadleafcommerce.core.web.cache;
 
-import org.thymeleaf.Template;
 import org.thymeleaf.cache.AbstractCacheManager;
+import org.thymeleaf.cache.ExpressionCacheKey;
 import org.thymeleaf.cache.ICache;
 import org.thymeleaf.cache.StandardCache;
 import org.thymeleaf.cache.StandardCacheManager;
-import org.thymeleaf.dom.Node;
-
-import java.util.List;
-import java.util.Properties;
+import org.thymeleaf.cache.TemplateCacheKey;
+import org.thymeleaf.engine.TemplateModel;
 
 import jakarta.annotation.Resource;
 
@@ -38,6 +36,11 @@ import jakarta.annotation.Resource;
  *
  * @author Chad Harchar (charchar)
  */
+// TODO(java21-migration): Thymeleaf 3 reworked the cache SPI. AbstractCacheManager now only exposes
+// initializeTemplateCache()/initializeExpressionCache(); the template cache is keyed by TemplateCacheKey and holds
+// TemplateModel values (previously String -> org.thymeleaf.Template), and the separate fragment/message caches
+// (org.thymeleaf.dom.Node based) were removed entirely. The BLC template cache override is preserved against the new
+// key/value types, and the expression cache simply delegates to a StandardCache mirroring StandardCacheManager.
 public class BLCICacheManager extends AbstractCacheManager {
 
     @Resource(name = "blICacheExtensionManager")
@@ -51,12 +54,12 @@ public class BLCICacheManager extends AbstractCacheManager {
      * @return
      */
     @Override
-    protected ICache<String, Template> initializeTemplateCache() {
+    protected ICache<TemplateCacheKey, TemplateModel> initializeTemplateCache() {
         final int maxSize = standardCacheManager.getTemplateCacheMaxSize();
         if (maxSize == 0) {
             return null;
         }
-        return new BLCICache<String, Template>(
+        return new BLCICache<TemplateCacheKey, TemplateModel>(
                 standardCacheManager.getTemplateCacheName(), standardCacheManager.getTemplateCacheUseSoftReferences(),
                 standardCacheManager.getTemplateCacheInitialSize(), maxSize,
                 standardCacheManager.getTemplateCacheValidityChecker(), standardCacheManager.getTemplateCacheLogger(),
@@ -69,46 +72,12 @@ public class BLCICacheManager extends AbstractCacheManager {
      * @return
      */
     @Override
-    protected final ICache<String, List<Node>> initializeFragmentCache() {
-        final int maxSize = standardCacheManager.getFragmentCacheMaxSize();
-        if (maxSize == 0) {
-            return null;
-        }
-        return new StandardCache<String, List<Node>>(
-                standardCacheManager.getFragmentCacheName(), standardCacheManager.getFragmentCacheUseSoftReferences(),
-                standardCacheManager.getFragmentCacheInitialSize(), maxSize,
-                standardCacheManager.getFragmentCacheValidityChecker(), standardCacheManager.getFragmentCacheLogger());
-    }
-
-    /**
-     * This method was changed just to use StandardCacheManager methods and should function the same
-     *
-     * @return
-     */
-    @Override
-    protected final ICache<String, Properties> initializeMessageCache() {
-        final int maxSize = standardCacheManager.getMessageCacheMaxSize();
-        if (maxSize == 0) {
-            return null;
-        }
-        return new StandardCache<String, Properties>(
-                standardCacheManager.getMessageCacheName(), standardCacheManager.getMessageCacheUseSoftReferences(),
-                standardCacheManager.getMessageCacheInitialSize(), maxSize,
-                standardCacheManager.getMessageCacheValidityChecker(), standardCacheManager.getMessageCacheLogger());
-    }
-
-    /**
-     * This method was changed just to use StandardCacheManager methods and should function the same
-     *
-     * @return
-     */
-    @Override
-    protected final ICache<String, Object> initializeExpressionCache() {
+    protected final ICache<ExpressionCacheKey, Object> initializeExpressionCache() {
         final int maxSize = standardCacheManager.getExpressionCacheMaxSize();
         if (maxSize == 0) {
             return null;
         }
-        return new StandardCache<String, Object>(
+        return new StandardCache<ExpressionCacheKey, Object>(
                 standardCacheManager.getExpressionCacheName(), standardCacheManager.getExpressionCacheUseSoftReferences(),
                 standardCacheManager.getExpressionCacheInitialSize(), maxSize,
                 standardCacheManager.getExpressionCacheValidityChecker(), standardCacheManager.getExpressionCacheLogger());

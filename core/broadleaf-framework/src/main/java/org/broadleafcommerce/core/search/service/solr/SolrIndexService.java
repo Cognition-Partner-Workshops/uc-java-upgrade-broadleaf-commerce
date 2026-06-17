@@ -19,7 +19,7 @@
  */
 package org.broadleafcommerce.core.search.service.solr;
 
-import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.SolrClient;
 import org.apache.solr.common.SolrInputDocument;
 import org.broadleafcommerce.common.exception.ServiceException;
 import org.broadleafcommerce.common.locale.domain.Locale;
@@ -112,7 +112,7 @@ public interface SolrIndexService {
      * @throws ServiceException
      * @throws IOException
      */
-    public void optimizeIndex(SolrServer server) throws ServiceException, IOException;
+    public void optimizeIndex(SolrClient server) throws ServiceException, IOException;
 
     /**
      * Allows a commit to be called.  By default, the details of the commit will depend on system properties, including:
@@ -127,7 +127,7 @@ public interface SolrIndexService {
      * @throws IOException
      */
 
-    public void commit(SolrServer server) throws ServiceException, IOException;
+    public void commit(SolrClient server) throws ServiceException, IOException;
 
     /**
      * This allows an external caller to force a commit to the SolrServer.  See Solr Documentation for 
@@ -143,7 +143,7 @@ public interface SolrIndexService {
      * @throws ServiceException
      * @throws IOException
      */
-    public void commit(SolrServer server, boolean softCommit, boolean waitSearcher, boolean waitFlush) throws ServiceException, IOException;
+    public void commit(SolrClient server, boolean softCommit, boolean waitSearcher, boolean waitFlush) throws ServiceException, IOException;
 
     /**
      * Prints out the docs to the trace logger

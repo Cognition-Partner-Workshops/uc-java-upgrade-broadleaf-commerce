@@ -23,11 +23,14 @@ import org.broadleafcommerce.common.web.BroadleafRequestContext;
 import org.broadleafcommerce.core.catalog.domain.Category;
 import org.broadleafcommerce.core.catalog.domain.Product;
 import org.broadleafcommerce.core.catalog.service.CatalogURLService;
-import org.thymeleaf.Arguments;
-import org.thymeleaf.dom.Element;
-import org.thymeleaf.processor.attr.AbstractAttributeModifierAttrProcessor;
-import org.thymeleaf.standard.expression.Expression;
+import org.thymeleaf.context.ITemplateContext;
+import org.thymeleaf.engine.AttributeName;
+import org.thymeleaf.model.IProcessableElementTag;
+import org.thymeleaf.processor.element.AbstractAttributeTagProcessor;
+import org.thymeleaf.processor.element.IElementTagStructureHandler;
+import org.thymeleaf.standard.expression.IStandardExpression;
 import org.thymeleaf.standard.expression.StandardExpressions;
+import org.thymeleaf.templatemode.TemplateMode;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -47,33 +50,45 @@ import jakarta.servlet.http.HttpServletRequest;
  * 
  * @author bpolster
  */
-public class CatalogRelativeHrefProcessor extends AbstractAttributeModifierAttrProcessor {
+public class CatalogRelativeHrefProcessor extends AbstractAttributeTagProcessor {
 
-    private static final String RHREF = "rhref";
+    private static final String DIALECT_PREFIX = "blc";
     private static final String HREF = "href";
 
     @Resource(name = "blCatalogURLService")
     protected CatalogURLService catalogURLService;
 
     public CatalogRelativeHrefProcessor() {
-        super(RHREF);
+        super(TemplateMode.HTML, DIALECT_PREFIX, null, false, "rhref", true, 0, true);
     }
 
     @Override
-    protected Map<String, String> getModifiedAttributeValues(Arguments arguments, Element element, String attributeName) {
-        Expression expression = (Expression) StandardExpressions.getExpressionParser(arguments.getConfiguration())
-                .parseExpression(arguments.getConfiguration(), arguments, element.getAttributeValue(attributeName));
+    protected void doProcess(ITemplateContext context, IProcessableElementTag tag, AttributeName attributeName,
+            String attributeValue, IElementTagStructureHandler structureHandler) {
+        Map<String, String> attrs = getModifiedAttributeValues(context, tag, attributeValue);
+        for (Map.Entry<String, String> entry : attrs.entrySet()) {
+            if (entry.getValue() != null && !entry.getValue().isEmpty()) {
+                structureHandler.setAttribute(entry.getKey(), entry.getValue());
+            } else {
+                structureHandler.removeAttribute(entry.getKey());
+            }
+        }
+    }
+
+    protected Map<String, String> getModifiedAttributeValues(ITemplateContext context, IProcessableElementTag tag, String attributeValue) {
+        IStandardExpression expression = StandardExpressions.getExpressionParser(context.getConfiguration())
+                .parseExpression(context, attributeValue);
         HttpServletRequest request = BroadleafRequestContext.getBroadleafRequestContext().getRequest();
 
-        String relativeHref = buildRelativeHref(expression, arguments, request);
+        String relativeHref = buildRelativeHref(expression, context, request);
                
         Map<String, String> attrs = new HashMap<String, String>();
         attrs.put(HREF, relativeHref);
         return attrs;
     }
 
-    protected String buildRelativeHref(Expression expression, Arguments arguments, HttpServletRequest request) {
-        Object result = expression.execute(arguments.getConfiguration(), arguments);
+    protected String buildRelativeHref(IStandardExpression expression, ITemplateContext context, HttpServletRequest request) {
+        Object result = expression.execute(context);
         String currentUrl = request.getRequestURI();
 
         if (request.getQueryString() != null) {
@@ -88,23 +103,4 @@ public class CatalogRelativeHrefProcessor extends AbstractAttributeModifierAttrP
         return "";
     }
 
-    @Override
-    protected ModificationType getModificationType(Arguments arguments, Element element, String attributeName, String newAttributeName) {
-        return ModificationType.SUBSTITUTION;
-    }
-
-    @Override
-    protected boolean removeAttributeIfEmpty(Arguments arguments, Element element, String attributeName, String newAttributeName) {
-        return true;
-    }
-
-    @Override
-    protected boolean recomputeProcessorsAfterExecution(Arguments arguments, Element element, String attributeName) {
-        return false;
-    }
-
-    @Override
-    public int getPrecedence() {
-        return 0;
-    }
 }

@@ -19,17 +19,60 @@
  */
 package org.broadleafcommerce.core.web.resolver;
 
-import org.thymeleaf.templateresolver.TemplateResolver;
+import org.apache.commons.io.IOUtils;
+import org.thymeleaf.IEngineConfiguration;
+import org.thymeleaf.templateresolver.AbstractConfigurableTemplateResolver;
+import org.thymeleaf.templateresource.ITemplateResource;
+import org.thymeleaf.templateresource.StringTemplateResource;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.util.Map;
 
 /**
- * This {@link TemplateResolver} serves as a placeholder class that can be used to inject 
- * a {@link DatabaseResourceResolver}. It doesn't need to actually override any methods from
- * TemplateResolver.
- * 
- * The injection happens in XML configuration.
- * 
+ * A template resolver that delegates database-backed template lookups to a {@link DatabaseResourceResolver}.
+ *
+ * The {@link DatabaseResourceResolver} is injected in XML configuration via {@link #setResourceResolver(DatabaseResourceResolver)}.
+ *
  * @author Andre Azzolini (apazzolini)
  */
-public class DatabaseTemplateResolver extends TemplateResolver {
-    
+// TODO(java21-migration): Thymeleaf 3 removed org.thymeleaf.templateresolver.TemplateResolver and the IResourceResolver
+// SPI it depended on. Template resolvers now extend AbstractConfigurableTemplateResolver and return an ITemplateResource
+// from computeTemplateResource(). The database lookup that previously happened through the injected IResourceResolver is
+// performed here by reading the InputStream produced by DatabaseResourceResolver and wrapping it as a
+// StringTemplateResource (returning null when the extension does not resolve the template, so other resolvers run).
+public class DatabaseTemplateResolver extends AbstractConfigurableTemplateResolver {
+
+    protected DatabaseResourceResolver resourceResolver;
+
+    public DatabaseResourceResolver getResourceResolver() {
+        return resourceResolver;
+    }
+
+    public void setResourceResolver(DatabaseResourceResolver resourceResolver) {
+        this.resourceResolver = resourceResolver;
+    }
+
+    @Override
+    protected ITemplateResource computeTemplateResource(IEngineConfiguration configuration, String ownerTemplate,
+            String template, String resourceName, String characterEncoding,
+            Map<String, Object> templateResolutionAttributes) {
+        if (resourceResolver == null) {
+            return null;
+        }
+        InputStream is = resourceResolver.getResourceAsStream(resourceName);
+        if (is == null) {
+            return null;
+        }
+        try {
+            Charset charset = (characterEncoding != null) ? Charset.forName(characterEncoding) : Charset.defaultCharset();
+            String content = IOUtils.toString(is, charset);
+            return new StringTemplateResource(content);
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to read database template resource '" + resourceName + "'", e);
+        } finally {
+            IOUtils.closeQuietly(is);
+        }
+    }
 }

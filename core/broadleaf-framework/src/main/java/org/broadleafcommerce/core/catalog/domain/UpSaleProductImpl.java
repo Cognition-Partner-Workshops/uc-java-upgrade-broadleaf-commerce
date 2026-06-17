@@ -30,6 +30,7 @@ import org.broadleafcommerce.common.presentation.client.VisibilityEnum;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.*;
 import org.hibernate.annotations.Parameter;
+import org.hibernate.annotations.Index;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.*;

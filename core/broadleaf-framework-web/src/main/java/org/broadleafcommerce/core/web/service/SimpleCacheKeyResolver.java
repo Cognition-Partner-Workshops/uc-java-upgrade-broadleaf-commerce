@@ -22,9 +22,9 @@ package org.broadleafcommerce.core.web.service;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-import org.thymeleaf.Arguments;
-import org.thymeleaf.dom.Element;
-import org.thymeleaf.standard.expression.Expression;
+import org.thymeleaf.context.ITemplateContext;
+import org.thymeleaf.model.IProcessableElementTag;
+import org.thymeleaf.standard.expression.IStandardExpression;
 import org.thymeleaf.standard.expression.StandardExpressions;
 
 /**
@@ -47,43 +47,42 @@ public class SimpleCacheKeyResolver implements TemplateCacheKeyResolverService {
      * @return
      */
     @Override
-    public String resolveCacheKey(Arguments arguments, Element element) {
+    public String resolveCacheKey(ITemplateContext context, IProcessableElementTag tag) {
         StringBuilder sb = new StringBuilder();
-        sb.append(getStringValue(arguments, element, "cacheKey", true));
-        sb.append(resolveTemplateName(arguments, element));
-        sb.append(resolveLineNumber(arguments, element));
+        sb.append(getStringValue(context, tag, "cacheKey"));
+        sb.append(resolveTemplateName(context, tag));
+        sb.append(resolveLineNumber(context, tag));
         return sb.toString();
     }
     
 
-    protected String resolveTemplateName(Arguments arguments, Element element) {
-        String templateName = getStringValue(arguments, element, "templateName", true);
+    protected String resolveTemplateName(ITemplateContext context, IProcessableElementTag tag) {
+        String templateName = getStringValue(context, tag, "templateName");
 
+        // TODO(java21-migration): Thymeleaf 3 no longer exposes per-element node properties
+        // (element.getNodeProperty("templateName")). Fall back to the current template name from
+        // the template context's template data.
         if (StringUtils.isEmpty(templateName)) {
-            templateName = (String) element.getNodeProperty("templateName");
-        }
-
-        if (StringUtils.isEmpty(templateName)) {
-            templateName = element.getDocumentName();
+            templateName = context.getTemplateData().getTemplate();
         }
         
         return templateName;
     }
     
-    protected Integer resolveLineNumber(Arguments arguments, Element element) {
-        Integer line = element.getLineNumber();
+    protected Integer resolveLineNumber(ITemplateContext context, IProcessableElementTag tag) {
+        Integer line = tag.getLine();
         return line == null ? 0 : line;
     }
 
-    protected String getStringValue(Arguments arguments, Element element, String attrName, boolean removeAttribute) {
-        if (element.hasAttribute(attrName)) {
-            String cacheKeyParam = element.getAttributeValue(attrName);
-            Expression expression = (Expression) StandardExpressions.getExpressionParser(arguments.getConfiguration())
-                    .parseExpression(arguments.getConfiguration(), arguments, cacheKeyParam);
-            if (removeAttribute) {
-                element.removeAttribute(attrName);
-            }
-            return expression.execute(arguments.getConfiguration(), arguments).toString();
+    protected String getStringValue(ITemplateContext context, IProcessableElementTag tag, String attrName) {
+        // TODO(java21-migration): the Thymeleaf 2 implementation removed the attribute as a side-effect
+        // (removeAttribute). In Thymeleaf 3, attribute mutation must be done via an
+        // IElementTagStructureHandler from within a processor, so this resolver only reads the value.
+        if (tag.hasAttribute(attrName)) {
+            String cacheKeyParam = tag.getAttributeValue(attrName);
+            IStandardExpression expression = StandardExpressions.getExpressionParser(context.getConfiguration())
+                    .parseExpression(context, cacheKeyParam);
+            return expression.execute(context).toString();
 
         }
         return "";

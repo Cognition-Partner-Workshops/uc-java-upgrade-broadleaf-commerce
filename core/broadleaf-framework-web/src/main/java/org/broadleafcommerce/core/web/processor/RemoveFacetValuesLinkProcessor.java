@@ -24,11 +24,14 @@ import org.broadleafcommerce.core.search.domain.SearchCriteria;
 import org.broadleafcommerce.core.search.domain.SearchFacetDTO;
 import org.broadleafcommerce.core.web.service.SearchFacetDTOService;
 import org.broadleafcommerce.core.web.util.ProcessorUtils;
-import org.thymeleaf.Arguments;
-import org.thymeleaf.dom.Element;
-import org.thymeleaf.processor.attr.AbstractAttributeModifierAttrProcessor;
-import org.thymeleaf.standard.expression.Expression;
+import org.thymeleaf.context.ITemplateContext;
+import org.thymeleaf.engine.AttributeName;
+import org.thymeleaf.model.IProcessableElementTag;
+import org.thymeleaf.processor.element.AbstractAttributeTagProcessor;
+import org.thymeleaf.processor.element.IElementTagStructureHandler;
+import org.thymeleaf.standard.expression.IStandardExpression;
 import org.thymeleaf.standard.expression.StandardExpressions;
+import org.thymeleaf.templatemode.TemplateMode;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -43,7 +46,9 @@ import jakarta.servlet.http.HttpServletRequest;
  * 
  * @author apazzolini
  */
-public class RemoveFacetValuesLinkProcessor extends AbstractAttributeModifierAttrProcessor {
+public class RemoveFacetValuesLinkProcessor extends AbstractAttributeTagProcessor {
+
+    private static final String DIALECT_PREFIX = "blc";
     
     @Resource(name = "blSearchFacetDTOService")
     protected SearchFacetDTOService searchFacetDTOService;
@@ -52,17 +57,24 @@ public class RemoveFacetValuesLinkProcessor extends AbstractAttributeModifierAtt
      * Sets the name of this processor to be used in Thymeleaf template
      */
     public RemoveFacetValuesLinkProcessor() {
-        super("removefacetvalueslink");
-    }
-    
-    @Override
-    public int getPrecedence() {
-        return 10000;
+        super(TemplateMode.HTML, DIALECT_PREFIX, null, false, "removefacetvalueslink", true, 10000, true);
     }
 
     @Override
+    protected void doProcess(ITemplateContext context, IProcessableElementTag tag, AttributeName attributeName,
+            String attributeValue, IElementTagStructureHandler structureHandler) {
+        Map<String, String> attrs = getModifiedAttributeValues(context, tag, attributeValue);
+        for (Map.Entry<String, String> entry : attrs.entrySet()) {
+            if (entry.getValue() != null && !entry.getValue().isEmpty()) {
+                structureHandler.setAttribute(entry.getKey(), entry.getValue());
+            } else {
+                structureHandler.removeAttribute(entry.getKey());
+            }
+        }
+    }
+
     @SuppressWarnings("unchecked")
-    protected Map<String, String> getModifiedAttributeValues(Arguments arguments, Element element, String attributeName) {
+    protected Map<String, String> getModifiedAttributeValues(ITemplateContext context, IProcessableElementTag tag, String attributeValue) {
         Map<String, String> attrs = new HashMap<String, String>();
         
         BroadleafRequestContext blcContext = BroadleafRequestContext.getBroadleafRequestContext();
@@ -71,9 +83,9 @@ public class RemoveFacetValuesLinkProcessor extends AbstractAttributeModifierAtt
         String baseUrl = request.getRequestURL().toString();
         Map<String, String[]> params = new HashMap<String, String[]>(request.getParameterMap());
         
-        Expression expression = (Expression) StandardExpressions.getExpressionParser(arguments.getConfiguration())
-                .parseExpression(arguments.getConfiguration(), arguments, element.getAttributeValue(attributeName));
-        SearchFacetDTO facet = (SearchFacetDTO) expression.execute(arguments.getConfiguration(), arguments);
+        IStandardExpression expression = StandardExpressions.getExpressionParser(context.getConfiguration())
+                .parseExpression(context, attributeValue);
+        SearchFacetDTO facet = (SearchFacetDTO) expression.execute(context);
         
         String key = searchFacetDTOService.getUrlKey(facet);
         params.remove(key);
@@ -85,18 +97,4 @@ public class RemoveFacetValuesLinkProcessor extends AbstractAttributeModifierAtt
         return attrs;
     }
 
-    @Override
-    protected ModificationType getModificationType(Arguments arguments, Element element, String attributeName, String newAttributeName) {
-        return ModificationType.SUBSTITUTION;
-    }
-
-    @Override
-    protected boolean removeAttributeIfEmpty(Arguments arguments, Element element, String attributeName, String newAttributeName) {
-        return true;
-    }
-
-    @Override
-    protected boolean recomputeProcessorsAfterExecution(Arguments arguments, Element element, String attributeName) {
-        return false;
-    }
 }

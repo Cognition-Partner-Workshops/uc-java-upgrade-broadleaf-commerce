@@ -19,9 +19,8 @@
  */
 package org.broadleafcommerce.core.search.service.solr;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.solr.client.solrj.SolrServer;
-import org.apache.solr.client.solrj.impl.CloudSolrServer;
+import org.apache.solr.client.solrj.SolrClient;
+import org.apache.solr.client.solrj.impl.CloudSolrClient;
 
 /**
  * <p>
@@ -37,9 +36,9 @@ public class SolrContext {
     public static final String PRIMARY = "primary";
     public static final String REINDEX = "reindex";
 
-    protected static SolrServer adminServer = null;
-    protected static SolrServer primaryServer = null;
-    protected static SolrServer reindexServer = null;
+    protected static SolrClient adminServer = null;
+    protected static SolrClient primaryServer = null;
+    protected static SolrClient reindexServer = null;
 
     /**
      * Sets the primary SolrServer instance to communicate with Solr.  This is typically one of the following: 
@@ -50,28 +49,22 @@ public class SolrContext {
      * 
      * @param server
      */
-    public static void setPrimaryServer(SolrServer server) {
-        if (server != null && CloudSolrServer.class.isAssignableFrom(server.getClass())) {
-            CloudSolrServer cs = (CloudSolrServer) server;
-            if (StringUtils.isBlank(cs.getDefaultCollection())) {
-                cs.setDefaultCollection(PRIMARY);
-            }
+    public static void setPrimaryServer(SolrClient server) {
+        if (server != null && CloudSolrClient.class.isAssignableFrom(server.getClass())) {
+            CloudSolrClient cs = (CloudSolrClient) server;
+            // TODO(java21-migration): SolrJ 9 removed CloudSolrClient#getDefaultCollection(), so we can no
+            // longer (a) read the configured collection to only default it when blank, nor (b) compare the
+            // primary/reindex default collections to enforce uniqueness. We unconditionally default the
+            // primary client to the PRIMARY collection (the Broadleaf convention), which also guarantees it
+            // differs from the REINDEX collection set on the reindex client. Reinstate the original
+            // configurability/validation once a Solr 9 mechanism to read the default collection is available.
+            cs.setDefaultCollection(PRIMARY);
 
-            if (reindexServer != null) {
+            if (reindexServer != null && server == reindexServer) {
                 //If we already have a reindex server set, make sure it's not the same instance as the primary
-                if (server == reindexServer) {
-                    throw new IllegalArgumentException("The primary and reindex CloudSolrServers are the same instances. "
-                            + "They must be different instances. Each instance must have a different defaultCollection or "
-                            + "the defaultCollection must be unspecified and Broadleaf will set it.");
-                }
-                
-                if (CloudSolrServer.class.isAssignableFrom(reindexServer.getClass())) {
-                    //Make sure that the primary and reindex servers are not using the same default collection name
-                    if (cs.getDefaultCollection().equals(((CloudSolrServer) reindexServer).getDefaultCollection())) {
-                        throw new IllegalStateException("Primary and Reindex servers cannot have the same defaultCollection: "
-                                + cs.getDefaultCollection());
-                    }
-                }
+                throw new IllegalArgumentException("The primary and reindex CloudSolrClients are the same instances. "
+                        + "They must be different instances. Each instance must have a different defaultCollection or "
+                        + "the defaultCollection must be unspecified and Broadleaf will set it.");
             }
         }
 
@@ -88,28 +81,20 @@ public class SolrContext {
      * 
      * @param server
      */
-    public static void setReindexServer(SolrServer server) {
-        if (server != null && CloudSolrServer.class.isAssignableFrom(server.getClass())) {
-            CloudSolrServer cs = (CloudSolrServer) server;
-            if (StringUtils.isBlank(cs.getDefaultCollection())) {
-                cs.setDefaultCollection(REINDEX);
-            }
+    public static void setReindexServer(SolrClient server) {
+        if (server != null && CloudSolrClient.class.isAssignableFrom(server.getClass())) {
+            CloudSolrClient cs = (CloudSolrClient) server;
+            // TODO(java21-migration): see setPrimaryServer - SolrJ 9 removed CloudSolrClient#getDefaultCollection().
+            // We unconditionally default the reindex client to the REINDEX collection, which guarantees it differs
+            // from the PRIMARY collection set on the primary client. Restore the blank-check/uniqueness validation
+            // once a Solr 9 mechanism to read the default collection is available.
+            cs.setDefaultCollection(REINDEX);
 
-            if (primaryServer != null) {
-                //If we already have a reindex server set, make sure it's not the same instance as the primary
-                if (server == primaryServer) {
-                    throw new IllegalArgumentException("The primary and reindex CloudSolrServers are the same instances. "
-                            + "They must be different instances. Each instance must have a different defaultCollection or "
-                            + "the defaultCollection must be unspecified and Broadleaf will set it.");
-                }
-
-                if (CloudSolrServer.class.isAssignableFrom(primaryServer.getClass())) {
-                    //Make sure that the primary and reindex servers are not using the same default collection name
-                    if (cs.getDefaultCollection().equals(((CloudSolrServer) primaryServer).getDefaultCollection())) {
-                        throw new IllegalStateException("Primary and Reindex servers cannot have the same defaultCollection: "
-                                + cs.getDefaultCollection());
-                    }
-                }
+            if (primaryServer != null && server == primaryServer) {
+                //If we already have a primary server set, make sure it's not the same instance as the reindex
+                throw new IllegalArgumentException("The primary and reindex CloudSolrClients are the same instances. "
+                        + "They must be different instances. Each instance must have a different defaultCollection or "
+                        + "the defaultCollection must be unspecified and Broadleaf will set it.");
             }
         }
         reindexServer = server;
@@ -129,7 +114,7 @@ public class SolrContext {
      * 
      * @param server
      */
-    public static void setAdminServer(SolrServer server) {
+    public static void setAdminServer(SolrClient server) {
         adminServer = server;
     }
 
@@ -149,7 +134,7 @@ public class SolrContext {
      * 
      * @return
      */
-    public static SolrServer getAdminServer() {
+    public static SolrClient getAdminServer() {
         if (adminServer != null) {
             return adminServer;
         }
@@ -160,14 +145,14 @@ public class SolrContext {
     /**
      * @return the primary Solr server
      */
-    public static SolrServer getServer() {
+    public static SolrClient getServer() {
         return primaryServer;
     }
 
     /**
      * @return the primary server if {@link #isSingleCoreMode()}, else the reindex server
      */
-    public static SolrServer getReindexServer() {
+    public static SolrClient getReindexServer() {
         return isSingleCoreMode() ? primaryServer : reindexServer;
     }
 
@@ -186,6 +171,6 @@ public class SolrContext {
      * @return
      */
     public static boolean isSolrCloudMode() {
-        return CloudSolrServer.class.isAssignableFrom(getServer().getClass());
+        return CloudSolrClient.class.isAssignableFrom(getServer().getClass());
     }
 }
