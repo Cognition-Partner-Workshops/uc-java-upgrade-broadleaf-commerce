@@ -44,13 +44,15 @@ import org.broadleafcommerce.core.workflow.BaseActivity;
 import org.broadleafcommerce.core.workflow.ProcessContext;
 import org.broadleafcommerce.core.workflow.WorkflowException;
 import org.broadleafcommerce.core.workflow.state.ActivityStateManagerImpl;
-import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -388,11 +390,11 @@ public class ValidateAndConfirmPaymentActivity extends BaseActivity<ProcessConte
      */
     protected String constructExpirationDate(Integer expMonth, Integer expYear) {
         SimpleDateFormat sdf = new SimpleDateFormat(getGatewayExpirationDateFormat());
-        DateTime exp = new DateTime()
+        LocalDateTime exp = LocalDateTime.now()
                 .withYear(expYear)
-                .withMonthOfYear(expMonth);
+                .withMonth(expMonth);
 
-        return sdf.format(exp.toDate());
+        return sdf.format(Date.from(exp.atZone(ZoneId.systemDefault()).toInstant()));
     }
 
     protected String getGatewayExpirationDateFormat(){

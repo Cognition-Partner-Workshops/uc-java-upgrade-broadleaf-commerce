@@ -36,8 +36,9 @@ import org.broadleafcommerce.common.payment.service.FailureCountExposable;
 import org.broadleafcommerce.common.payment.service.PaymentGatewayTransactionService;
 import org.broadleafcommerce.common.vendor.service.exception.PaymentException;
 import org.broadleafcommerce.common.vendor.service.type.ServiceStatusType;
-import org.joda.time.DateTime;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 
 /**
  * This is an example implementation of a {@link org.broadleafcommerce.common.payment.service.PaymentGatewayTransactionService}.
@@ -176,9 +177,9 @@ public class NullPaymentGatewayTransactionServiceImpl implements PaymentGatewayT
                 String expMonth = parsedDate[0];
                 String expYear = parsedDate[1];
                 try {
-                    DateTime expirationDate = new DateTime(Integer.parseInt("20" + expYear), Integer.parseInt(expMonth), 1, 0, 0);
-                    expirationDate = expirationDate.dayOfMonth().withMaximumValue();
-                    validDate = expirationDate.isAfterNow();
+                    LocalDateTime expirationDate = LocalDateTime.of(Integer.parseInt("20" + expYear), Integer.parseInt(expMonth), 1, 0, 0);
+                    expirationDate = expirationDate.withDayOfMonth(expirationDate.toLocalDate().lengthOfMonth());
+                    validDate = expirationDate.isAfter(LocalDateTime.now());
                     validDateFormat = true;
                 } catch (Exception e) {
                     //invalid date format

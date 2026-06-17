@@ -49,7 +49,6 @@ import org.broadleafcommerce.profile.core.service.CountryService;
 import org.broadleafcommerce.profile.core.service.CustomerAddressService;
 import org.broadleafcommerce.profile.core.service.StateService;
 import org.broadleafcommerce.profile.web.core.CustomerState;
-import org.joda.time.DateTime;
 import org.thymeleaf.Arguments;
 import org.thymeleaf.dom.Element;
 import org.thymeleaf.processor.element.AbstractLocalVariableDefinitionElementProcessor;
@@ -59,6 +58,7 @@ import org.thymeleaf.standard.expression.StandardExpressions;
 import java.text.DateFormatSymbols;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -544,7 +544,7 @@ public class OnePageCheckoutProcessor extends AbstractLocalVariableDefinitionEle
      */
     protected List<String> populateExpirationYears() {
         List<String> expirationYears = new ArrayList<String>();
-        DateTime dateTime = new DateTime();
+        LocalDate dateTime = LocalDate.now();
         for (int i=0; i<10; i++){
             expirationYears.add(dateTime.plusYears(i).getYear()+"");
         }

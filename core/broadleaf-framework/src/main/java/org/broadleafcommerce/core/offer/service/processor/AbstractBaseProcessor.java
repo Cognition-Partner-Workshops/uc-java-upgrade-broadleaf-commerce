@@ -42,8 +42,9 @@ import org.broadleafcommerce.core.offer.service.type.OfferRuleType;
 import org.broadleafcommerce.core.offer.service.type.OfferType;
 import org.broadleafcommerce.core.order.service.type.FulfillmentType;
 import org.broadleafcommerce.profile.core.domain.Customer;
-import org.joda.time.LocalDateTime;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -401,14 +402,14 @@ public abstract class AbstractBaseProcessor implements BaseProcessor {
             Calendar current = timeZone == null ? SystemTime.asCalendar() : SystemTime.asCalendar(timeZone);
             Calendar start = null;
             if (offer.getStartDate() != null) {
-                LocalDateTime startDate = new LocalDateTime(offer.getStartDate());
+                LocalDateTime startDate = LocalDateTime.ofInstant(offer.getStartDate().toInstant(), ZoneId.systemDefault());
                 start = timeZone == null ? new GregorianCalendar() : new GregorianCalendar(timeZone);
                 start.set(Calendar.YEAR, startDate.getYear());
-                start.set(Calendar.MONTH, startDate.getMonthOfYear() - 1);
+                start.set(Calendar.MONTH, startDate.getMonthValue() - 1);
                 start.set(Calendar.DAY_OF_MONTH, startDate.getDayOfMonth());
-                start.set(Calendar.HOUR_OF_DAY, startDate.getHourOfDay());
-                start.set(Calendar.MINUTE, startDate.getMinuteOfHour());
-                start.set(Calendar.SECOND, startDate.getSecondOfMinute());
+                start.set(Calendar.HOUR_OF_DAY, startDate.getHour());
+                start.set(Calendar.MINUTE, startDate.getMinute());
+                start.set(Calendar.SECOND, startDate.getSecond());
                 start.get(Calendar.HOUR_OF_DAY);//do not delete this line
                 start.get(Calendar.MINUTE);
                 if (LOG.isTraceEnabled()) {
@@ -417,14 +418,14 @@ public abstract class AbstractBaseProcessor implements BaseProcessor {
             }
             Calendar end = null;
             if (offer.getEndDate() != null) {
-                LocalDateTime endDate = new LocalDateTime(offer.getEndDate());
+                LocalDateTime endDate = LocalDateTime.ofInstant(offer.getEndDate().toInstant(), ZoneId.systemDefault());
                 end = timeZone == null ? new GregorianCalendar() : new GregorianCalendar(timeZone);
                 end.set(Calendar.YEAR, endDate.getYear());
-                end.set(Calendar.MONTH, endDate.getMonthOfYear() - 1);
+                end.set(Calendar.MONTH, endDate.getMonthValue() - 1);
                 end.set(Calendar.DAY_OF_MONTH, endDate.getDayOfMonth());
-                end.set(Calendar.HOUR_OF_DAY, endDate.getHourOfDay());
-                end.set(Calendar.MINUTE, endDate.getMinuteOfHour());
-                end.set(Calendar.SECOND, endDate.getSecondOfMinute());
+                end.set(Calendar.HOUR_OF_DAY, endDate.getHour());
+                end.set(Calendar.MINUTE, endDate.getMinute());
+                end.set(Calendar.SECOND, endDate.getSecond());
                 end.get(Calendar.HOUR_OF_DAY);//do not delete this line
                 end.get(Calendar.MINUTE);
                 if (LOG.isTraceEnabled()) {
