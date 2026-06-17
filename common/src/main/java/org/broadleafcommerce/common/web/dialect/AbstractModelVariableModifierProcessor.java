@@ -20,6 +20,7 @@
 package org.broadleafcommerce.common.web.dialect;
 
 import org.thymeleaf.context.ITemplateContext;
+import org.thymeleaf.context.IWebContext;
 import org.thymeleaf.model.IProcessableElementTag;
 import org.thymeleaf.processor.element.AbstractElementTagProcessor;
 import org.thymeleaf.processor.element.IElementTagStructureHandler;
@@ -73,6 +74,23 @@ public abstract class AbstractModelVariableModifierProcessor extends AbstractEle
      */
     protected void addToModel(IElementTagStructureHandler structureHandler, String key, Object value) {
         structureHandler.setLocalVariable(key, value);
+    }
+
+    /**
+     * Adds a value to the current request so it is visible to the remainder of the page, including
+     * sibling elements. {@link #addToModel} contributes a Thymeleaf 3 local variable which is scoped
+     * to the host element's body; processors whose element is self-closing and whose value is consumed
+     * by following sibling markup must use this method instead so the value survives outside the body.
+     * Outside of a web request there is no request scope, so the value is not added.
+     *
+     * @param context the template context for the current request
+     * @param key the key to add to the request
+     * @param value the value represented by the key
+     */
+    protected void addToRequest(ITemplateContext context, String key, Object value) {
+        if (context instanceof IWebContext) {
+            ((IWebContext) context).getExchange().setAttributeValue(key, value);
+        }
     }
 
     @SuppressWarnings("unchecked")

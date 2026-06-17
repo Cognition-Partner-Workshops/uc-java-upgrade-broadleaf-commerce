@@ -96,7 +96,9 @@ public class GoogleAnalyticsProcessor extends AbstractModelVariableModifierProce
         if (orderNumber != null) {
             order = orderService.findOrderByOrderNumber(orderNumber);
         }
-        addToModel(structureHandler, "analytics", analytics(getWebPropertyId(), order));
+        // This element is self-closing and "analytics" is consumed by a sibling <script>, so the value
+        // must be request-scoped (a body-scoped local variable would not be visible outside this element).
+        addToRequest(context, "analytics", analytics(getWebPropertyId(), order));
     }
 
     /**
