@@ -42,7 +42,7 @@ import org.thymeleaf.standard.processor.attr.StandardFragmentAttrProcessor;
 
 import java.util.Set;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 /**
  * <p>

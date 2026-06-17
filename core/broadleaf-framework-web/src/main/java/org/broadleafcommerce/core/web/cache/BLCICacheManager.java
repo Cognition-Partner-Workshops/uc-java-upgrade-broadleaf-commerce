@@ -29,7 +29,7 @@ import org.thymeleaf.dom.Node;
 import java.util.List;
 import java.util.Properties;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 /**
  * Implementation of {@link org.thymeleaf.cache.AbstractCacheManager} to use {@link BLCICache} for templates.

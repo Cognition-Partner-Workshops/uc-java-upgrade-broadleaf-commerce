@@ -41,7 +41,7 @@ import org.thymeleaf.dom.Element;
 
 import java.util.Map;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 /**
  * A Thymeleaf processor that will output Google Analytics tracking Javascript. When used on an order confirmation page

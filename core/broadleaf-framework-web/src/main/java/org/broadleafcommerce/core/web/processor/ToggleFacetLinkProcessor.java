@@ -34,8 +34,8 @@ import org.thymeleaf.standard.expression.StandardExpressions;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * A Thymeleaf processor that processes the value attribute on the element it's tied to

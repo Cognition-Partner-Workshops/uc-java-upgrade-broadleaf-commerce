@@ -77,8 +77,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import javax.annotation.Resource;
-import javax.jms.IllegalStateException;
+import jakarta.annotation.Resource;
+import jakarta.jms.IllegalStateException;
 
 /**
  * Provides utility methods that are used by other Solr service classes

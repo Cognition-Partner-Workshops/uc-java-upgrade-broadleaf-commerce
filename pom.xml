@@ -55,6 +55,8 @@
         <hibernate.validator.version>8.0.1.Final</hibernate.validator.version>
         <jakarta.servlet.version>6.0.0</jakarta.servlet.version>
         <jakarta.servlet.jsp.version>3.1.1</jakarta.servlet.jsp.version>
+        <jakarta.servlet.jsp.jstl.version>3.0.0</jakarta.servlet.jsp.jstl.version>
+        <jakarta.servlet.jsp.jstl.impl.version>3.0.1</jakarta.servlet.jsp.jstl.impl.version>
         <jakarta.xml.bind.version>4.0.1</jakarta.xml.bind.version>
         <jakarta.ws.rs.version>3.1.0</jakarta.ws.rs.version>
         <jakarta.annotation.version>2.1.1</jakarta.annotation.version>
@@ -63,6 +65,8 @@
         <jakarta.jms.version>3.1.0</jakarta.jms.version>
         <maven.source.plugin.version>3.3.1</maven.source.plugin.version>
         <thymeleaf.version>3.1.2.RELEASE</thymeleaf.version>
+        <solr.version>9.7.0</solr.version>
+        <quartz.version>2.3.2</quartz.version>
         <geb.version>0.10.0</geb.version>
         <spock.core.version>2.3-groovy-4.0</spock.core.version>
         <spock.spring.version>2.3-groovy-4.0</spock.spring.version>
@@ -888,6 +892,21 @@
                 <type>jar</type>
                 <scope>compile</scope>
             </dependency>
+            <!-- Jakarta JSTL 3.0 (replaces the javax jstl/standard tag libraries) -->
+            <dependency>
+                <groupId>jakarta.servlet.jsp.jstl</groupId>
+                <artifactId>jakarta.servlet.jsp.jstl-api</artifactId>
+                <version>${jakarta.servlet.jsp.jstl.version}</version>
+                <type>jar</type>
+                <scope>compile</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.web</groupId>
+                <artifactId>jakarta.servlet.jsp.jstl</artifactId>
+                <version>${jakarta.servlet.jsp.jstl.impl.version}</version>
+                <type>jar</type>
+                <scope>compile</scope>
+            </dependency>
             <dependency>
                 <groupId>org.thymeleaf</groupId>
                 <artifactId>thymeleaf</artifactId>
@@ -991,10 +1010,11 @@
             </dependency>
 
             <!-- Search Related Libraries -->
+            <!-- Solr 9.x SolrJ/Core (replaces Solr 4.10). SolrServer->SolrClient client API. -->
             <dependency>
                 <artifactId>solr-solrj</artifactId>
                 <groupId>org.apache.solr</groupId>
-                <version>4.10.3</version>
+                <version>${solr.version}</version>
                 <type>jar</type>
                 <scope>compile</scope>
                 <exclusions>
@@ -1009,7 +1029,7 @@
             <dependency>
                 <artifactId>solr-core</artifactId>
                 <groupId>org.apache.solr</groupId>
-                <version>4.10.3</version>
+                <version>${solr.version}</version>
                 <type>jar</type>
                 <scope>compile</scope>
                 <exclusions>
@@ -1085,7 +1105,7 @@
             <dependency>
                 <groupId>org.quartz-scheduler</groupId>
                 <artifactId>quartz</artifactId>
-                <version>2.2.0</version>
+                <version>${quartz.version}</version>
                 <type>jar</type>
                 <scope>compile</scope>
             </dependency>

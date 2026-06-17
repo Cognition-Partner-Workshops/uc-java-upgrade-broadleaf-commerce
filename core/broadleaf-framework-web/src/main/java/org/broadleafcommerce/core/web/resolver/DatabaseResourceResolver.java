@@ -27,7 +27,7 @@ import org.thymeleaf.resourceresolver.IResourceResolver;
 
 import java.io.InputStream;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 
 /**

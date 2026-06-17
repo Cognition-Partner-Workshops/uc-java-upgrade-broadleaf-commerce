@@ -25,8 +25,6 @@ import org.broadleafcommerce.common.service.GenericResponse;
 import org.broadleafcommerce.profile.core.domain.Customer;
 import org.broadleafcommerce.profile.core.service.handler.PasswordUpdatedHandler;
 import org.broadleafcommerce.profile.core.service.listener.PostRegistrationObserver;
-import org.springframework.security.authentication.dao.SaltSource;
-
 import java.util.List;
 
 public interface CustomerService {
@@ -166,28 +164,8 @@ public interface CustomerService {
     @Deprecated
     public void setSalt(String salt);
 
-    /**
-     * Returns the {@link SaltSource} used with the blPasswordEncoder to encrypt the user password. Usually configured in
-     * applicationContext-security.xml. This is not a required property and will return null if not configured
-     *
-     * @deprecated the new {@link org.springframework.security.crypto.password.PasswordEncoder PasswordEncoder} handles salting internally, this will be removed in 4.2
-     *
-     * @return the currently used {@link SaltSource}
-     */
-    @Deprecated
-    public SaltSource getSaltSource();
-    
-    /**
-     * Sets the {@link SaltSource} used with blPasswordEncoder to encrypt the user password. Usually configured within
-     * applicationContext-security.xml
-     *
-     * @deprecated the new {@link org.springframework.security.crypto.password.PasswordEncoder PasswordEncoder} handles salting internally, this will be removed in 4.2
-     *
-     * @param saltSource the new {@link SaltSource} to use
-     */
-    @Deprecated
-    public void setSaltSource(SaltSource saltSource);
-    
+    // TODO(java21-migration): Spring Security 6 removed org.springframework.security.authentication.dao.SaltSource;
+    // the getSaltSource()/setSaltSource() accessors were dropped. The modern PasswordEncoder salts internally.
     /**
      * @deprecated use {@link #getSalt(Customer, String)} instead, this will be removed in 4.2
      */
@@ -195,8 +173,7 @@ public interface CustomerService {
     public Object getSalt(Customer customer);
     
     /**
-     * Gets the salt object for the current customer. By default this delegates to {@link #getSaltSource()}. If there is
-     * not a {@link SaltSource} configured ({@link #getSaltSource()} returns null) then this also returns null.
+     * Gets the salt object for the current customer. The modern PasswordEncoder salts internally, so this returns null.
      *
      * @deprecated the new {@link org.springframework.security.crypto.password.PasswordEncoder PasswordEncoder} handles salting internally, this will be removed in 4.2
      *

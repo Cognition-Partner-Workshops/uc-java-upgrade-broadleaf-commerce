@@ -32,7 +32,7 @@ import org.thymeleaf.dom.Element;
 import org.thymeleaf.standard.expression.Expression;
 import org.thymeleaf.standard.expression.StandardExpressions;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 /**
  * A Thymeleaf processor that will add the product ratings and reviews to the model

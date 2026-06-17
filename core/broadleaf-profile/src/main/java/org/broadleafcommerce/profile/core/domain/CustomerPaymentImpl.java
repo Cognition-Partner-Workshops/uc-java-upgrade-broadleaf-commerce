@@ -35,29 +35,27 @@ import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.annotations.MapKeyType;
 import org.hibernate.annotations.Parameter;
-import org.hibernate.annotations.Type;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.persistence.CascadeType;
-import javax.persistence.CollectionTable;
-import javax.persistence.Column;
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.EntityListeners;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Inheritance;
-import javax.persistence.InheritanceType;
-import javax.persistence.JoinColumn;
-import javax.persistence.Lob;
-import javax.persistence.ManyToOne;
-import javax.persistence.MapKeyColumn;
-import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EntityListeners;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.Inheritance;
+import jakarta.persistence.InheritanceType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.MapKeyColumn;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 
 @Entity
 @EntityListeners(value = { TemporalTimestampListener.class })
@@ -116,10 +114,11 @@ public class CustomerPaymentImpl implements CustomerPayment {
             groupOrder = Presentation.Group.Order.PAYMENT)
     protected boolean isDefault = false;
 
+    // TODO(java21-migration): Hibernate 6 removed org.hibernate.annotations.MapKeyType and the @Type(type="...") String
+    // form (org.hibernate.type.StringClobType is gone). The map key is already a String and a @Lob String maps to CLOB
+    // natively, so the explicit @MapKeyType/@Type overrides are no longer required.
     @ElementCollection()
-    @MapKeyType(@Type(type = "java.lang.String"))
     @Lob
-    @Type(type = "org.hibernate.type.StringClobType")
     @CollectionTable(name = "BLC_CUSTOMER_PAYMENT_FIELDS", joinColumns = @JoinColumn(name = "CUSTOMER_PAYMENT_ID"))
     @MapKeyColumn(name = "FIELD_NAME", nullable = false)
     @Column(name = "FIELD_VALUE")
