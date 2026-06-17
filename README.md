@@ -8,7 +8,7 @@ Unless you are sending a pull request or making core changes to Broadleaf, this 
 
 ## Local Development
 
-If you are interested in a contribution Broadleaf Commerce recommends JDK 1.8, but will build/run with JDK 1.7 or 1.8. At this time Broadleaf has not been tested with Java 9.
+If you are interested in a contribution Broadleaf Commerce recommends JDK 21. The build and CI target JDK 21.
 
 The easiest way to get the Broadleaf framework locally set up with the DemoSite is to clone this repository and execute a clean install via Maven:
 
