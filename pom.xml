@@ -160,9 +160,9 @@
                                         </versionRange>
                                         <goals>
                                             <goal>addTestSources</goal>
-                                            <goal>testCompile</goal>
+                                            <goal>compileTests</goal>
                                             <goal>
-                                                testGenerateStubs
+                                                generateTestStubs
                                             </goal>
                                             <goal>removeTestStubs</goal>
                                             <goal>compile</goal>
@@ -446,6 +446,7 @@
                         <configuration>
                             <minmemory>128m</minmemory>
                             <maxmemory>1g</maxmemory>
+                            <doclint>none</doclint>
                         </configuration>
                     </plugin>
                 </plugins>
