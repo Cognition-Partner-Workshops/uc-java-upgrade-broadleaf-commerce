@@ -64,7 +64,16 @@ public class CatalogURLServiceImpl implements CatalogURLService {
     protected String buildRelativeUrlWithParam(String currentUrl, String fragment, String idParam, String idValue) {
         try {
             URIBuilder builder = new URIBuilder(currentUrl);
-            builder.setPath(builder.getPath() + "/" + fragment);
+            // TODO(java21-migration): the migrated Apache HttpClient returns null from getPath() for an empty URI and
+            // "/" for a root URI; normalize both to an empty base so the result keeps a single leading slash.
+            String basePath = builder.getPath();
+            if (basePath == null) {
+                basePath = "";
+            }
+            if (basePath.endsWith("/")) {
+                basePath = basePath.substring(0, basePath.length() - 1);
+            }
+            builder.setPath(basePath + "/" + fragment);
 
             if (appendIdToRelativeURI) {
                 builder.setParameter(idParam, String.valueOf(idValue));
