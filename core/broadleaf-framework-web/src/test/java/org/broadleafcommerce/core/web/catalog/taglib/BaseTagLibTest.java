@@ -21,7 +21,7 @@ package org.broadleafcommerce.core.web.catalog.taglib;
 
 import junit.framework.TestCase;
 import org.broadleafcommerce.core.catalog.service.CatalogService;
-import org.easymock.classextension.EasyMock;
+import org.easymock.EasyMock;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.jsp.PageContext;

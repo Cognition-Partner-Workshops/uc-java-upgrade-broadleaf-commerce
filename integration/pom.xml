@@ -81,8 +81,7 @@
                         <id>default-test</id>
                         <configuration>
                             <skipTests>true</skipTests>
-                            <argLine>-Xmx1024m -XX:MaxPermSize=512m
-                                -Dlegacy=true ${surefire.argLine}</argLine>
+                            <argLine>-Xmx1024m -Dlegacy=true ${surefire.argLine}</argLine>
                         </configuration>
                     </execution>
                     <execution>
@@ -95,7 +94,7 @@
                             <excludes>
                                 <exclude>**/Legacy**Test.java</exclude>
                             </excludes>
-                            <argLine>-Xmx1024m -XX:MaxPermSize=512m ${surefire.argLine}</argLine>
+                            <argLine>-Xmx1024m ${surefire.argLine}</argLine>
                         </configuration>
                     </execution>
                 </executions>
@@ -201,10 +200,6 @@
                                     <argLine>
                                         -Dlegacy=true
                                         -Xmx1024m
-                                        -XX:MaxPermSize=512m -Xdebug
-                                        -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8083
-                                        -agentpath:${jrebel.path}
-                                        -Drebel.log.stdout=true
                                         ${surefire.argLine}
                                     </argLine>
                                 </configuration>
@@ -214,10 +209,6 @@
                                 <configuration>
                                     <argLine>
                                         -Xmx1024m
-                                        -XX:MaxPermSize=512m -Xdebug
-                                        -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8083
-                                        -agentpath:${jrebel.path}
-                                        -Drebel.log.stdout=true
                                         ${surefire.argLine}
                                     </argLine>
                                 </configuration>
@@ -271,7 +262,6 @@
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
             <type>jar</type>
-            <classifier>jdk15</classifier>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
@@ -300,10 +290,6 @@
         <dependency>
             <groupId>org.easymock</groupId>
             <artifactId>easymock</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.easymock</groupId>
-            <artifactId>easymockclassextension</artifactId>
         </dependency>
 
         <!-- Spock/Groovy Test Dependencies -->
