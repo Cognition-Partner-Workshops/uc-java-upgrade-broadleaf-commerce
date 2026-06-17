@@ -73,10 +73,12 @@ public class NamedOrderProcessor extends AbstractModelVariableModifierProcessor 
         String orderName = tag.getAttributeValue("orderName");
 
         Order order = orderService.findNamedOrderForCustomer(orderName, customer);
+        // This element is self-closing and orderVar is consumed by sibling markup, so the value must be
+        // request-scoped (a body-scoped local variable would not be visible outside this element).
         if (order != null) {
-            addToModel(structureHandler, orderVar, order);
+            addToRequest(orderVar, order);
         } else {
-            addToModel(structureHandler, orderVar, new NullOrderImpl());
+            addToRequest(orderVar, new NullOrderImpl());
         }
     }
 }
