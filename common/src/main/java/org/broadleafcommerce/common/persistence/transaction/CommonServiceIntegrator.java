@@ -19,11 +19,11 @@
  */
 package org.broadleafcommerce.common.persistence.transaction;
 
-import org.hibernate.cfg.Configuration;
+import org.hibernate.boot.Metadata;
+import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.engine.spi.SessionFactoryImplementor;
-import org.hibernate.integrator.spi.ServiceContributingIntegrator;
-import org.hibernate.metamodel.source.MetadataImplementor;
-import org.hibernate.service.ServiceRegistryBuilder;
+import org.hibernate.integrator.spi.Integrator;
+import org.hibernate.service.spi.ServiceContributor;
 import org.hibernate.service.spi.SessionFactoryServiceRegistry;
 
 /**
@@ -31,20 +31,20 @@ import org.hibernate.service.spi.SessionFactoryServiceRegistry;
  *
  * @author Jeff Fischer
  */
-public class CommonServiceIntegrator implements ServiceContributingIntegrator {
+// TODO(java21-migration): Hibernate 6 removed org.hibernate.integrator.spi.ServiceContributingIntegrator and its
+// prepareServices(ServiceRegistryBuilder) hook. Service-registry contributions now go through the dedicated
+// org.hibernate.service.spi.ServiceContributor SPI (registered via META-INF/services), while Integrator only
+// participates in metadata/session-factory integration. This class implements both so the custom
+// LifecycleAwareJDBCServices continues to be registered.
+public class CommonServiceIntegrator implements Integrator, ServiceContributor {
 
     @Override
-    public void prepareServices(ServiceRegistryBuilder serviceRegistryBuilder) {
+    public void contribute(StandardServiceRegistryBuilder serviceRegistryBuilder) {
         serviceRegistryBuilder.addInitiator(LifecycleAwareJDBCServicesInitiator.INSTANCE);
     }
 
     @Override
-    public void integrate(Configuration configuration, SessionFactoryImplementor sessionFactory, SessionFactoryServiceRegistry serviceRegistry) {
-        //do nothing
-    }
-
-    @Override
-    public void integrate(MetadataImplementor metadata, SessionFactoryImplementor sessionFactory, SessionFactoryServiceRegistry serviceRegistry) {
+    public void integrate(Metadata metadata, SessionFactoryImplementor sessionFactory, SessionFactoryServiceRegistry serviceRegistry) {
         //do nothing
     }
 

@@ -23,20 +23,20 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.broadleafcommerce.common.exception.ServiceException;
 import org.broadleafcommerce.common.security.service.ExploitProtectionService;
-import org.springframework.security.web.util.AntPathRequestMatcher;
-import org.springframework.security.web.util.RequestMatcher;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.web.filter.GenericFilterBean;
 
 import java.io.IOException;
 import java.util.List;
 
-import javax.annotation.Resource;
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.annotation.Resource;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * Checks the validity of the CSRF token on every POST request.
@@ -45,7 +45,7 @@ import javax.servlet.http.HttpServletResponse;
  * ({@code servletPath + pathInfo}) of an {@code HttpServletRequest}.
  * This allows you to use wildcard matching as well, for example {@code /**} or {@code **}
  *
- * @see org.springframework.security.web.util.AntPathRequestMatcher
+ * @see org.springframework.security.web.util.matcher.AntPathRequestMatcher
  * @deprecated Use {@link SecurityFilter} instead
  * @author Andre Azzolini (apazzolini)
  */

@@ -19,14 +19,15 @@
  */
 package org.broadleafcommerce.common.util;
 
-import org.springframework.util.Log4jConfigurer;
-
-import java.io.FileNotFoundException;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  * @author Jeff Fischer
  */
 public class RuntimeLog4jConfigurer {
+
+    private static final Log LOG = LogFactory.getLog(RuntimeLog4jConfigurer.class);
 
     private String log4jConfigLocation;
 
@@ -36,10 +37,10 @@ public class RuntimeLog4jConfigurer {
 
     public void setLog4jConfigLocation(String log4jConfigLocation) {
         this.log4jConfigLocation = log4jConfigLocation;
-        try {
-            Log4jConfigurer.initLogging(log4jConfigLocation);
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
-        }
+        // TODO(java21-migration): Spring 6 removed org.springframework.util.Log4jConfigurer (log4j 1.x is EOL and
+        // no longer on the classpath). Runtime log4j (re)configuration from a location is no longer supported here;
+        // configure logging via the active logging provider's own configuration (e.g. log4j2/logback).
+        LOG.warn("RuntimeLog4jConfigurer is a no-op on the Spring 6 / Java 21 stack; ignoring log4jConfigLocation '"
+                + log4jConfigLocation + "'. Configure logging via your logging provider's configuration file.");
     }
 }

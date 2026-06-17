@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *       http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,17 +19,22 @@
  */
 package org.broadleafcommerce.common.web;
 
-import org.thymeleaf.TemplateProcessingParameters;
+import org.thymeleaf.IEngineConfiguration;
 import org.thymeleaf.templateresolver.ITemplateResolver;
 import org.thymeleaf.templateresolver.TemplateResolution;
 
+import java.util.Map;
+
 /**
  * Placeholder component to support a custom TemplateResolver.
- * 
+ *
  * Utilized by the Broadleaf Commerce CustomTemplate extension to introduce themes at the DB level.
  *
  * @author bpolster
  */
+// TODO(java21-migration): Thymeleaf 3 changed ITemplateResolver#resolveTemplate to take the IEngineConfiguration, the
+// owner template, the template name and the template-resolution attributes (the TL2 TemplateProcessingParameters and the
+// initialize() lifecycle method were removed).
 public class NullBroadleafTemplateResolver implements ITemplateResolver {
 
     @Override
@@ -43,12 +48,8 @@ public class NullBroadleafTemplateResolver implements ITemplateResolver {
     }
 
     @Override
-    public TemplateResolution resolveTemplate(TemplateProcessingParameters templateProcessingParameters) {
+    public TemplateResolution resolveTemplate(IEngineConfiguration configuration, String ownerTemplate, String template,
+            Map<String, Object> templateResolutionAttributes) {
         return null;
-    }
-
-    @Override
-    public void initialize() {
-
     }
 }

@@ -20,9 +20,11 @@
 package org.broadleafcommerce.common.util;
 
 import org.broadleafcommerce.common.web.BroadleafRequestContext;
-import org.hibernate.ejb.HibernateEntityManagerFactory;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.transaction.TransactionStatus;
+
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.metamodel.EntityType;
 
 /**
  * Utility class that can be substituted for StreamingTransactionCapableUtil to allow targeted testing of
@@ -60,8 +62,19 @@ public class StreamTransactionCapableUtilFailureSimulator extends StreamingTrans
         if (context.getAdditionalProperties().containsKey(FAILURE_MODE_KEY)) {
             String failureModePU = (String) context.getAdditionalProperties().get(FAILURE_MODE_PU);
             String checkClassName = failureModePU.equals("blPU")?blPUCheckClassName:blEventPUCheckClassName;
-            if (((HibernateEntityManagerFactory) ((JpaTransactionManager) transactionManager).getEntityManagerFactory())
-                                    .getSessionFactory().getAllClassMetadata().containsKey(checkClassName)){
+            // TODO(java21-migration): Hibernate 6 removed org.hibernate.ejb.HibernateEntityManagerFactory and
+            // SessionFactory#getAllClassMetadata(). Determine whether the entity is mapped by scanning the JPA metamodel
+            // entities for a matching Java type name instead.
+            EntityManagerFactory emf = ((JpaTransactionManager) transactionManager).getEntityManagerFactory();
+            boolean mapped = false;
+            for (EntityType<?> entityType : emf.getMetamodel().getEntities()) {
+                Class<?> javaType = entityType.getJavaType();
+                if (javaType != null && checkClassName.equals(javaType.getName())) {
+                    mapped = true;
+                    break;
+                }
+            }
+            if (mapped) {
                 throw (RuntimeException) context.getAdditionalProperties().get(FAILURE_MODE_EXCEPTION);
             }
         }

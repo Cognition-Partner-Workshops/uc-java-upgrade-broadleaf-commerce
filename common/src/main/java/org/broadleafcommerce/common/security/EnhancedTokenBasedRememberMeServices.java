@@ -23,14 +23,11 @@ import org.broadleafcommerce.common.security.util.CookieUtils;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices;
 
-import javax.annotation.Resource;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.Locale;
+import jakarta.annotation.Resource;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponseWrapper;
 
 /**
  * This class adds additional features to the token based remember me services provided by
@@ -50,156 +47,40 @@ public class EnhancedTokenBasedRememberMeServices extends TokenBasedRememberMeSe
     @Resource(name="blCookieUtils")
     protected CookieUtils cookieUtils;
 
-    @Deprecated
-    public EnhancedTokenBasedRememberMeServices() {}
-    
+    // TODO(java21-migration): Spring Security 6 removed the deprecated no-arg TokenBasedRememberMeServices constructor;
+    // the key and UserDetailsService are now mandatory, so the previous @Deprecated no-arg constructor was dropped.
     public EnhancedTokenBasedRememberMeServices(String key, UserDetailsService userDetailsService) {
         super(key, userDetailsService);
     }
     
     @Override
     protected void setCookie(String[] tokens, int maxAge, HttpServletRequest request, HttpServletResponse response) {
-        MockResponse mockResponse = new MockResponse();
+        MockResponse mockResponse = new MockResponse(response);
         super.setCookie(tokens, maxAge, request, mockResponse);
         Cookie myCookie = mockResponse.getTempCookie();
         cookieUtils.setCookieValue(response, myCookie.getName(), myCookie.getValue(), myCookie.getPath(), myCookie.getMaxAge(), myCookie.getSecure());
     }
     
-    private class MockResponse implements HttpServletResponse {
-        
+    // TODO(java21-migration): the original MockResponse hand-implemented every jakarta.servlet.http.HttpServletResponse
+    // method, which is brittle as the Servlet API evolves (Servlet 6 added getHeaderNames()/getHeaders()/getStatus()
+    // and removed setStatus(int,String)/encodeUrl/encodeRedirectUrl). Wrapping the real response via
+    // HttpServletResponseWrapper and only intercepting addCookie keeps the cookie-capture behavior without tracking the
+    // full interface surface.
+    private static class MockResponse extends HttpServletResponseWrapper {
+
         private Cookie tempCookie;
 
-        public void addCookie(Cookie arg0) {
-            this.tempCookie = arg0;
+        public MockResponse(HttpServletResponse response) {
+            super(response);
         }
-        
+
+        @Override
+        public void addCookie(Cookie cookie) {
+            this.tempCookie = cookie;
+        }
+
         public Cookie getTempCookie() {
             return tempCookie;
         }
-
-        public void addDateHeader(String arg0, long arg1) {
-            //do nothing
-        }
-
-        public void addHeader(String arg0, String arg1) {
-            //do nothing
-        }
-
-        public void addIntHeader(String arg0, int arg1) {
-            //do nothing
-        }
-
-        public boolean containsHeader(String arg0) {
-            return false;
-        }
-
-        public String encodeRedirectUrl(String arg0) {
-            return null;
-        }
-
-        public String encodeRedirectURL(String arg0) {
-            return null;
-        }
-
-        public String encodeUrl(String arg0) {
-            return null;
-        }
-
-        public String encodeURL(String arg0) {
-            return null;
-        }
-
-        public void sendError(int arg0, String arg1) throws IOException {
-            //do nothing
-        }
-
-        public void sendError(int arg0) throws IOException {
-            //do nothing
-        }
-
-        public void sendRedirect(String arg0) throws IOException {
-            //do nothing
-        }
-
-        public void setDateHeader(String arg0, long arg1) {
-            //do nothing
-        }
-
-        public void setHeader(String arg0, String arg1) {
-            //do nothing
-        }
-
-        public void setIntHeader(String arg0, int arg1) {
-            //do nothing
-        }
-
-        public void setStatus(int arg0, String arg1) {
-            //do nothing
-        }
-
-        public void setStatus(int arg0) {
-            //do nothing
-        }
-
-        public void flushBuffer() throws IOException {
-            //do nothing
-        }
-
-        public int getBufferSize() {
-            return 0;
-        }
-
-        public String getCharacterEncoding() {
-            return null;
-        }
-
-        public String getContentType() {
-            return null;
-        }
-
-        public Locale getLocale() {
-            return null;
-        }
-
-        public ServletOutputStream getOutputStream() throws IOException {
-            return null;
-        }
-
-        public PrintWriter getWriter() throws IOException {
-            return null;
-        }
-
-        public boolean isCommitted() {
-            return false;
-        }
-
-        public void reset() {
-            //do nothing
-        }
-
-        public void resetBuffer() {
-            //do nothing
-        }
-
-        public void setBufferSize(int arg0) {
-            //do nothing
-        }
-
-        public void setCharacterEncoding(String arg0) {
-            //do nothing
-        }
-
-        public void setContentLength(int arg0) {
-            //do nothing
-        }
-
-        public void setContentType(String arg0) {
-            //do nothing
-        }
-
-        public void setLocale(Locale arg0) {
-            //do nothing
-        }
-        
     }
 }

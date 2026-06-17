@@ -32,10 +32,7 @@ import org.broadleafcommerce.common.persistence.EntityConfiguration;
 import org.broadleafcommerce.common.sandbox.SandBoxHelper;
 import org.broadleafcommerce.common.util.dao.DynamicDaoHelper;
 import org.broadleafcommerce.common.util.dao.DynamicDaoHelperImpl;
-import org.hibernate.ejb.HibernateEntityManager;
-import org.hibernate.ejb.QueryHints;
-import org.hibernate.type.LongType;
-import org.hibernate.type.StringType;
+import org.hibernate.jpa.QueryHints;
 import org.hibernate.type.Type;
 import org.springframework.stereotype.Repository;
 
@@ -43,14 +40,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import javax.annotation.Resource;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import jakarta.annotation.Resource;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 
 @Repository("blTranslationDao")
 public class TranslationDaoImpl implements TranslationDao {
@@ -87,7 +84,7 @@ public class TranslationDaoImpl implements TranslationDao {
     @Override
     public Map<String, Object> getIdPropertyMetadata(TranslatedEntity entity) {
         Class<?> implClass = entityConfiguration.lookupEntityClass(entity.getType());
-        return dynamicDaoHelper.getIdMetadata(implClass, (HibernateEntityManager) em);
+        return dynamicDaoHelper.getIdMetadata(implClass, em);
     }
 
     @Override
@@ -151,8 +148,9 @@ public class TranslationDaoImpl implements TranslationDao {
         Map<String, Object> idMetadata = getIdPropertyMetadata(entityType);
         String idProperty = (String) idMetadata.get("name");
         Type idType = (Type) idMetadata.get("type");
+        Class<?> idClass = idType == null ? null : idType.getReturnedClass();
 
-        if (!(idType instanceof LongType || idType instanceof StringType)) {
+        if (!(Long.class.equals(idClass) || String.class.equals(idClass))) {
             throw new UnsupportedOperationException("Only ID types of String and Long are currently supported");
         }
 
@@ -163,9 +161,9 @@ public class TranslationDaoImpl implements TranslationDao {
             throw new RuntimeException("Error reading id property", e);
         }
 
-        if (idType instanceof StringType) {
+        if (String.class.equals(idClass)) {
             return (String) idValue;
-        } else if (idType instanceof LongType) {
+        } else if (Long.class.equals(idClass)) {
             return getUpdatedEntityId(entityType, (Long) idValue);
         }
 

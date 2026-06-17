@@ -19,7 +19,7 @@
  */
 package org.broadleafcommerce.common.util.dao;
 
-import org.hibernate.ejb.Ejb3Configuration;
+import org.hibernate.boot.Metadata;
 
 /**
  * 
@@ -28,6 +28,9 @@ import org.hibernate.ejb.Ejb3Configuration;
  */
 public interface EJB3ConfigurationDao {
 
-    public abstract Ejb3Configuration getConfiguration();
+    // TODO(java21-migration): Hibernate 6 removed org.hibernate.ejb.Ejb3Configuration. The boot-time
+    // mapping information is now exposed via org.hibernate.boot.Metadata, whose getEntityBinding(String)
+    // replaces the old Configuration#getClassMapping(String).
+    public abstract Metadata getConfiguration();
 
 }

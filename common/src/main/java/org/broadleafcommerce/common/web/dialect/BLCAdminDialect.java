@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *       http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -19,28 +19,29 @@
  */
 package org.broadleafcommerce.common.web.dialect;
 
-import org.thymeleaf.dialect.AbstractDialect;
+import org.thymeleaf.dialect.AbstractProcessorDialect;
 import org.thymeleaf.processor.IProcessor;
 
 import java.util.HashSet;
 import java.util.Set;
 
-public class BLCAdminDialect extends AbstractDialect {
+// TODO(java21-migration): Thymeleaf 3 replaced AbstractDialect with AbstractProcessorDialect, which takes the dialect
+// name, prefix and precedence in its constructor and exposes getProcessors(String dialectPrefix) (isLenient() and the
+// no-arg getProcessors()/getExecutionAttributes() were removed).
+public class BLCAdminDialect extends AbstractProcessorDialect {
+
+    public static final String DIALECT_NAME = "Broadleaf Commerce Admin Dialect";
+    public static final String DIALECT_PREFIX = "blc_admin";
+    public static final int DIALECT_PRECEDENCE = 1000;
 
     private Set<IProcessor> processors = new HashSet<IProcessor>();
 
-    @Override
-    public String getPrefix() {
-        return "blc_admin";
+    public BLCAdminDialect() {
+        super(DIALECT_NAME, DIALECT_PREFIX, DIALECT_PRECEDENCE);
     }
 
     @Override
-    public boolean isLenient() {
-        return true;
-    }
-
-    @Override
-    public Set<IProcessor> getProcessors() {
+    public Set<IProcessor> getProcessors(String dialectPrefix) {
         return processors;
     }
 

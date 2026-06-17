@@ -25,7 +25,6 @@ import net.sf.ehcache.Element;
 import net.sf.ehcache.event.CacheEventListener;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hibernate.cache.spi.CacheKey;
 
 import java.io.Serializable;
 import java.lang.reflect.Method;
@@ -134,11 +133,10 @@ public class HydratedCacheManagerImpl implements CacheEventListener, HydratedCac
     }
 
     private void removeCache(String cacheRegion, Serializable key) {
+        // TODO(java21-migration): Hibernate 5+ removed org.hibernate.cache.spi.CacheKey; the second-level cache key is
+        // now an opaque object produced by CacheKeysFactory, so the entity/role name and raw id can no longer be
+        // extracted from it here. Fall back to treating the cache region as the cache name and the key as-is.
         String cacheName = cacheRegion;
-        if (key instanceof CacheKey) {
-            cacheName = ((CacheKey) key).getEntityOrRoleName();
-            key = ((CacheKey) key).getKey();
-        }
         if (containsCache(cacheRegion, cacheName)) {
             HydratedCache cache = hydratedCacheContainer.get(cacheRegion + "_" + cacheName);
             String myKey = cacheRegion + "_" + cacheName + "_" + key;

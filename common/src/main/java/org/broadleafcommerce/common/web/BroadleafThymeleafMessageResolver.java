@@ -23,14 +23,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.broadleafcommerce.common.i18n.service.TranslationService;
-import org.thymeleaf.Arguments;
+import org.thymeleaf.context.ITemplateContext;
 import org.thymeleaf.messageresolver.AbstractMessageResolver;
-import org.thymeleaf.messageresolver.MessageResolution;
 import org.thymeleaf.util.Validate;
 
 import java.util.Locale;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 /**
  * This implementation will check to see if the key matches the known i18n value key. If that is the case, we will attempt 
@@ -48,20 +47,26 @@ public class BroadleafThymeleafMessageResolver extends AbstractMessageResolver {
     /**
      * Resolve a translated value of an object's property.
      * 
-     * @param args
+     * @param context
+     * @param origin
      * @param key
      * @param messageParams
-     * @return the resolved message
+     * @return the resolved message, or null to delegate to the next resolver
      */
-    public MessageResolution resolveMessage(final Arguments args, final String key, final Object[] messageParams) {
-        Validate.notNull(args, "args cannot be null");
-        Validate.notNull(args.getContext().getLocale(), "Locale in context cannot be null");
+    // TODO(java21-migration): Thymeleaf 3 changed IMessageResolver#resolveMessage to take an ITemplateContext (instead of
+    // org.thymeleaf.Arguments) plus the message origin Class, and to return a plain String (MessageResolution was
+    // removed). createAbsentMessageRepresentation replaces the old absent-message handling; returning null lets the next
+    // resolver in the chain handle the key.
+    @Override
+    public String resolveMessage(final ITemplateContext context, final Class<?> origin, final String key, final Object[] messageParams) {
+        Validate.notNull(context, "context cannot be null");
+        Validate.notNull(context.getLocale(), "Locale in context cannot be null");
         Validate.notNull(key, "Message key cannot be null");
         
-        if (I18N_VALUE_KEY.equals(key)) {
+        if (I18N_VALUE_KEY.equals(key) && messageParams != null && messageParams.length >= 2) {
             Object entity = messageParams[0];
             String property = (String) messageParams[1];
-            Locale locale = args.getContext().getLocale();
+            Locale locale = context.getLocale();
             
             if (LOG.isTraceEnabled()) {
                 LOG.trace(String.format("Attempting to resolve translated value for object %s, property %s, locale %s",
@@ -71,10 +76,15 @@ public class BroadleafThymeleafMessageResolver extends AbstractMessageResolver {
             String resolvedMessage = translationService.getTranslatedValue(entity, property, locale);
             
             if (StringUtils.isNotBlank(resolvedMessage)) {
-                return new MessageResolution(resolvedMessage);
+                return resolvedMessage;
             }
         }
         
+        return null;
+    }
+
+    @Override
+    public String createAbsentMessageRepresentation(final ITemplateContext context, final Class<?> origin, final String key, final Object[] messageParams) {
         return null;
     }
 

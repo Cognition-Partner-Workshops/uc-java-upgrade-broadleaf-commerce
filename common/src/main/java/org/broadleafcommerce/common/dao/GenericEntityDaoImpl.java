@@ -29,10 +29,7 @@ import org.broadleafcommerce.common.util.dao.DynamicDaoHelperImpl;
 import org.broadleafcommerce.common.util.dao.TypedQueryBuilder;
 import org.hibernate.FlushMode;
 import org.hibernate.Session;
-import org.hibernate.ejb.HibernateEntityManager;
-import org.hibernate.type.AbstractSingleColumnStandardBasicType;
-import org.hibernate.type.IntegerType;
-import org.hibernate.type.LongType;
+import org.hibernate.type.Type;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
@@ -46,15 +43,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import javax.annotation.Resource;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Path;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import jakarta.annotation.Resource;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 
 
 @Repository("blGenericEntityDao")
@@ -92,12 +89,12 @@ public class GenericEntityDaoImpl implements GenericEntityDao, ApplicationContex
     @Override
     public <T> T readGenericEntity(Class<T> clazz, Object id) {
         clazz = (Class<T>) DynamicDaoHelperImpl.getNonProxyImplementationClassIfNecessary(clazz);
-        Map<String, Object> md = daoHelper.getIdMetadata(clazz, (HibernateEntityManager) em);
-        AbstractSingleColumnStandardBasicType type = (AbstractSingleColumnStandardBasicType) md.get("type");
+        Map<String, Object> md = daoHelper.getIdMetadata(clazz, em);
+        Type type = (Type) md.get("type");
         
-        if (type instanceof LongType) {
+        if (type != null && Long.class.equals(type.getReturnedClass())) {
             id = Long.parseLong(String.valueOf(id));
-        } else if (type instanceof IntegerType) {
+        } else if (type != null && Integer.class.equals(type.getReturnedClass())) {
             id = Integer.parseInt(String.valueOf(id));
         }
 
@@ -215,12 +212,12 @@ public class GenericEntityDaoImpl implements GenericEntityDao, ApplicationContex
 
     @Override
     public void clearAutoFlushMode() {
-        em.unwrap(Session.class).setFlushMode(FlushMode.MANUAL);
+        em.unwrap(Session.class).setHibernateFlushMode(FlushMode.MANUAL);
     }
 
     @Override
     public void enableAutoFlushMode() {
-        em.unwrap(Session.class).setFlushMode(FlushMode.AUTO);
+        em.unwrap(Session.class).setHibernateFlushMode(FlushMode.AUTO);
     }
 
     @Override

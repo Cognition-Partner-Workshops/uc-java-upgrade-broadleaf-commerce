@@ -23,11 +23,13 @@ package org.broadleafcommerce.common.web.payment.processor;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.stereotype.Component;
-import org.thymeleaf.Arguments;
-import org.thymeleaf.dom.Element;
-import org.thymeleaf.processor.element.AbstractLocalVariableDefinitionElementProcessor;
+import org.thymeleaf.context.ITemplateContext;
+import org.thymeleaf.model.IProcessableElementTag;
+import org.thymeleaf.processor.element.AbstractElementTagProcessor;
+import org.thymeleaf.processor.element.IElementTagStructureHandler;
+import org.thymeleaf.templatemode.TemplateMode;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -54,8 +56,12 @@ import java.util.Map;
  *
  * @author Elbert Bautista (elbertbautista)
  */
+// TODO(java21-migration): Thymeleaf 3 removed AbstractLocalVariableDefinitionElementProcessor and the DOM model
+// (org.thymeleaf.Arguments / org.thymeleaf.dom.Element). This processor now extends AbstractElementTagProcessor and
+// contributes the computed local variables through IElementTagStructureHandler#setLocalVariable. The host element is
+// intentionally left in place (the TL2 implementation returned false from removeHostElement).
 @Component("blCreditCardTypesProcessor")
-public class CreditCardTypesProcessor extends AbstractLocalVariableDefinitionElementProcessor {
+public class CreditCardTypesProcessor extends AbstractElementTagProcessor {
 
     protected static final Log LOG = LogFactory.getLog(CreditCardTypesProcessor.class);
 
@@ -63,21 +69,18 @@ public class CreditCardTypesProcessor extends AbstractLocalVariableDefinitionEle
     protected CreditCardTypesExtensionManager extensionManager;
 
     public CreditCardTypesProcessor() {
-        super("credit_card_types");
+        super(TemplateMode.HTML, "blc", "credit_card_types", true, null, false, 100);
     }
 
     @Override
-    public int getPrecedence() {
-        return 100;
+    protected void doProcess(ITemplateContext context, IProcessableElementTag tag, IElementTagStructureHandler structureHandler) {
+        Map<String, Object> localVars = getNewLocalVariables(context, tag);
+        for (Map.Entry<String, Object> entry : localVars.entrySet()) {
+            structureHandler.setLocalVariable(entry.getKey(), entry.getValue());
+        }
     }
 
-    @Override
-    protected boolean removeHostElement(Arguments arguments, Element element) {
-        return false;
-    }
-
-    @Override
-    protected Map<String, Object> getNewLocalVariables(Arguments arguments, Element element) {
+    protected Map<String, Object> getNewLocalVariables(ITemplateContext context, IProcessableElementTag tag) {
         Map<String, Object> localVars = new HashMap<String, Object>();
 
         Map<String, String> creditCardTypes = new HashMap<String, String>();

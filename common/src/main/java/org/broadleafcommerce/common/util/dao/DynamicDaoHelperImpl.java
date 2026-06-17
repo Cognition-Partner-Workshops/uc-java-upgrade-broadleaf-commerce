@@ -28,9 +28,9 @@ import org.broadleafcommerce.common.exception.ProxyDetectionException;
 import org.broadleafcommerce.common.presentation.AdminPresentationClass;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hibernate.ejb.HibernateEntityManager;
-import org.hibernate.mapping.PersistentClass;
-import org.hibernate.metadata.ClassMetadata;
+import org.hibernate.engine.spi.SessionFactoryImplementor;
+import org.hibernate.metamodel.MappingMetamodel;
+import org.hibernate.persister.entity.EntityPersister;
 import org.hibernate.type.Type;
 import org.springframework.util.ReflectionUtils;
 
@@ -45,8 +45,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import javax.persistence.Entity;
-import javax.persistence.EntityManager;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EntityManager;
 
 
 public class DynamicDaoHelperImpl implements DynamicDaoHelper {
@@ -93,14 +93,14 @@ public class DynamicDaoHelperImpl implements DynamicDaoHelper {
                 }
             }
             if (cache == null) {
-                List<Class<?>> entities = new ArrayList<Class<?>>();
-                for (Object item : sessionFactory.getAllClassMetadata().values()) {
-                    ClassMetadata metadata = (ClassMetadata) item;
-                    Class<?> mappedClass = metadata.getMappedClass();
-                    if (mappedClass != null && ceilingClass.isAssignableFrom(mappedClass)) {
+                final List<Class<?>> entities = new ArrayList<Class<?>>();
+                final Class<?> ceiling = ceilingClass;
+                getMappingMetamodel(sessionFactory).forEachEntityDescriptor(persister -> {
+                    Class<?> mappedClass = persister.getMappedClass();
+                    if (mappedClass != null && ceiling.isAssignableFrom(mappedClass)) {
                         entities.add(mappedClass);
                     }
-                }
+                });
                 Class<?>[] sortedEntities = sortEntities(ceilingClass, entities);
 
                 List<Class<?>> filteredSortedEntities = new ArrayList<Class<?>>();
@@ -146,7 +146,7 @@ public class DynamicDaoHelperImpl implements DynamicDaoHelper {
         boolean eof = false;
         while (!eof) {
             Class<?> superClass = topConcreteClass.getSuperclass();
-            PersistentClass persistentClass = ejb3ConfigurationDao.getConfiguration().getClassMapping(superClass.getName());
+            EntityPersister persistentClass = getMappingMetamodel(sessionFactory).findEntityDescriptor(superClass);
             if (persistentClass == null) {
                 eof = true;
             } else {
@@ -223,12 +223,12 @@ public class DynamicDaoHelperImpl implements DynamicDaoHelper {
     }
     
     @Override
-    public Map<String, Object> getIdMetadata(Class<?> entityClass, HibernateEntityManager entityManager) {
+    public Map<String, Object> getIdMetadata(Class<?> entityClass, EntityManager entityManager) {
         entityClass = getNonProxyImplementationClassIfNecessary(entityClass);
         Map<String, Object> response = new HashMap<String, Object>();
-        SessionFactory sessionFactory = entityManager.getSession().getSessionFactory();
-        
-        ClassMetadata metadata = sessionFactory.getClassMetadata(entityClass);
+        SessionFactory sessionFactory = getSessionFactory(entityManager);
+
+        EntityPersister metadata = getMappingMetamodel(sessionFactory).findEntityDescriptor(entityClass);
         if (metadata == null) {
             return null;
         }
@@ -242,26 +242,30 @@ public class DynamicDaoHelperImpl implements DynamicDaoHelper {
     }
 
     @Override
-    public List<String> getPropertyNames(Class<?> entityClass, HibernateEntityManager entityManager) {
+    public List<String> getPropertyNames(Class<?> entityClass, EntityManager entityManager) {
         entityClass = getNonProxyImplementationClassIfNecessary(entityClass);
-        ClassMetadata metadata = getSessionFactory(entityManager).getClassMetadata(entityClass);
+        EntityPersister metadata = getMappingMetamodel(getSessionFactory(entityManager)).findEntityDescriptor(entityClass);
         List<String> propertyNames = new ArrayList<String>();
         Collections.addAll(propertyNames, metadata.getPropertyNames());
         return propertyNames;
     }
 
     @Override
-    public List<Type> getPropertyTypes(Class<?> entityClass, HibernateEntityManager entityManager) {
+    public List<Type> getPropertyTypes(Class<?> entityClass, EntityManager entityManager) {
         entityClass = getNonProxyImplementationClassIfNecessary(entityClass);
-        ClassMetadata metadata = getSessionFactory(entityManager).getClassMetadata(entityClass);
+        EntityPersister metadata = getMappingMetamodel(getSessionFactory(entityManager)).findEntityDescriptor(entityClass);
         List<Type> propertyTypes = new ArrayList<Type>();
         Collections.addAll(propertyTypes, metadata.getPropertyTypes());
         return propertyTypes;
     }
 
     @Override
-    public SessionFactory getSessionFactory(HibernateEntityManager entityManager) {
-        return entityManager.getSession().getSessionFactory();
+    public SessionFactory getSessionFactory(EntityManager entityManager) {
+        return entityManager.unwrap(Session.class).getSessionFactory();
+    }
+
+    protected MappingMetamodel getMappingMetamodel(SessionFactory sessionFactory) {
+        return ((SessionFactoryImplementor) sessionFactory).getMappingMetamodel();
     }
 
     @Override
@@ -295,7 +299,7 @@ public class DynamicDaoHelperImpl implements DynamicDaoHelper {
     @Override
     public Field getIdField(Class<?> clazz, EntityManager em) {
         clazz = getNonProxyImplementationClassIfNecessary(clazz);
-        ClassMetadata metadata = em.unwrap(Session.class).getSessionFactory().getClassMetadata(clazz);
+        EntityPersister metadata = getMappingMetamodel(em.unwrap(Session.class).getSessionFactory()).findEntityDescriptor(clazz);
         Field idField = ReflectionUtils.findField(clazz, metadata.getIdentifierPropertyName());
         idField.setAccessible(true);
         return idField;
@@ -304,7 +308,7 @@ public class DynamicDaoHelperImpl implements DynamicDaoHelper {
     @Override
     public Field getIdField(Class<?> clazz, Session session) {
         clazz = getNonProxyImplementationClassIfNecessary(clazz);
-        ClassMetadata metadata = session.getSessionFactory().getClassMetadata(clazz);
+        EntityPersister metadata = getMappingMetamodel(session.getSessionFactory()).findEntityDescriptor(clazz);
         Field idField = ReflectionUtils.findField(clazz, metadata.getIdentifierPropertyName());
         idField.setAccessible(true);
         return idField;

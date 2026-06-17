@@ -21,15 +21,16 @@ package org.broadleafcommerce.common.util;
 
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.SQLQuery;
 import org.hibernate.Session;
+import org.hibernate.query.BindableType;
+import org.hibernate.query.NativeQuery;
 import org.hibernate.type.Type;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
 
 /**
  * The purpose for this class is to provide an alternate approach to an HQL UPDATE query for batch updates on Hibernate filtered
@@ -74,17 +75,26 @@ public class UpdateExecutor {
         List<Long[]> runs = buildRuns(ids);
         for (Long[] run : runs) {
             String queryString = String.format(template, buildInClauseTemplate(run.length));
-            SQLQuery query = em.unwrap(Session.class).createSQLQuery(queryString);
-            int counter = 0;
+            // TODO(java21-migration): Hibernate 6 removed org.hibernate.SQLQuery (use org.hibernate.query.NativeQuery)
+            // and the typed setters (setLong) in favor of setParameter. Ordinal '?' parameters are now 1-based per JPA.
+            NativeQuery<?> query = em.unwrap(Session.class).createNativeQuery(queryString);
+            int position = 1;
+            int paramIndex = 0;
             if (!ArrayUtils.isEmpty(params)) {
                 for (Object param : params) {
-                    query.setParameter(counter, param, types[counter]);
-                    counter++;
+                    Type type = (types != null && paramIndex < types.length) ? types[paramIndex] : null;
+                    if (type instanceof BindableType) {
+                        query.setParameter(position, param, (BindableType) type);
+                    } else {
+                        query.setParameter(position, param);
+                    }
+                    position++;
+                    paramIndex++;
                 }
             }
             for (Long id : run) {
-                query.setLong(counter, id);
-                counter++;
+                query.setParameter(position, id);
+                position++;
             }
             response += query.executeUpdate();
         }

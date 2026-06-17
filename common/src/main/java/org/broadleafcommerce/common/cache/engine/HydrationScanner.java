@@ -22,15 +22,14 @@ package org.broadleafcommerce.common.cache.engine;
 import org.broadleafcommerce.common.cache.Hydrated;
 import org.hibernate.annotations.Cache;
 import org.objectweb.asm.AnnotationVisitor;
-import org.objectweb.asm.Attribute;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
-import org.objectweb.asm.commons.EmptyVisitor;
 
-import javax.persistence.Id;
+import jakarta.persistence.Id;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
@@ -42,16 +41,24 @@ import java.util.Map;
  * @author jfischer
  *
  */
-public class HydrationScanner implements ClassVisitor, FieldVisitor, AnnotationVisitor {
+// TODO(java21-migration): ASM 3.x exposed ClassVisitor/FieldVisitor/AnnotationVisitor as interfaces (so one class could
+// implement all three) and shipped org.objectweb.asm.commons.EmptyVisitor. ASM 4+ (here 9.x, required for Java 21
+// bytecode) made these abstract classes that require an API-version constructor and dropped EmptyVisitor, so the scanner
+// now extends ClassVisitor and delegates field/annotation visiting to dedicated inner visitors that share its state.
+public class HydrationScanner extends ClassVisitor {
     
     private static final int CLASSSTAGE = 0;
     private static final int FIELDSTAGE = 1;
     
     @SuppressWarnings("unchecked")
     public HydrationScanner(Class topEntityClass, Class entityClass) {
+        super(Opcodes.ASM9);
         this.topEntityClass = topEntityClass;
         this.entityClass = entityClass;
     }
+
+    private final AnnotationVisitor annotationVisitor = new HydrationAnnotationVisitor();
+    private final FieldVisitor fieldVisitor = new HydrationFieldVisitor();
     
     private String cacheRegion;
     private Map<String, Method[]> idMutators = new HashMap<String, Method[]>();
@@ -93,8 +100,8 @@ public class HydrationScanner implements ClassVisitor, FieldVisitor, AnnotationV
     }
 
     //Common
-    public AnnotationVisitor visitAnnotation(String arg0, boolean arg1) {
-        Type annotationType = Type.getType(arg0);
+    private AnnotationVisitor handleAnnotation(String descriptor) {
+        Type annotationType = Type.getType(descriptor);
         switch(stage) {
         case CLASSSTAGE: {
             if (annotationType.getClassName().equals(Cache.class.getName())){
@@ -117,7 +124,12 @@ public class HydrationScanner implements ClassVisitor, FieldVisitor, AnnotationV
             break;
         }
         }
-        return this;
+        return annotationVisitor;
+    }
+
+    @Override
+    public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
+        return handleAnnotation(descriptor);
     }
     
     private Method[] retrieveMutators() {
@@ -154,16 +166,8 @@ public class HydrationScanner implements ClassVisitor, FieldVisitor, AnnotationV
         return new Method[]{getMethod, setMethod};
     }
 
-    //FieldVisitor
-    public void visitAttribute(Attribute arg0) {
-        //do nothing
-    }
-
-    public void visitEnd() {
-        //do nothing
-    }
-
     //ClassVisitor
+    @Override
     public void visit(int arg0, int arg1, String arg2, String arg3, String arg4, String[] arg5) {
         try {
             clazz = Class.forName(arg2.replaceAll("/", "."));
@@ -173,6 +177,7 @@ public class HydrationScanner implements ClassVisitor, FieldVisitor, AnnotationV
         stage = CLASSSTAGE;
     }
 
+    @Override
     public FieldVisitor visitField(int arg0, String arg1, String arg2, String arg3, Object arg4) {
         stage = FIELDSTAGE;
         fieldName = arg1;
@@ -210,48 +215,60 @@ public class HydrationScanner implements ClassVisitor, FieldVisitor, AnnotationV
             }
             break;
         }
-        return this;
+        return fieldVisitor;
     }
 
-    public void visitInnerClass(String arg0, String arg1, String arg2, int arg3) {
-        //do nothing
-    }
-
+    @Override
     public MethodVisitor visitMethod(int arg0, String arg1, String arg2, String arg3, String[] arg4) {
-        return new EmptyVisitor();
+        return null;
     }
 
-    public void visitOuterClass(String arg0, String arg1, String arg2) {
-        //do nothing
-    }
+    /**
+     * FieldVisitor that routes field-level annotations back through the scanner's shared annotation handling.
+     */
+    private class HydrationFieldVisitor extends FieldVisitor {
 
-    public void visitSource(String arg0, String arg1) {
-        //do nothing
-    }
-
-    //AnnotationVisitor
-    public void visit(String arg0, Object arg1) {
-        if (Cache.class.getName().equals(annotation) && "region".equals(arg0)) {
-            cacheRegion = (String) arg1;
+        HydrationFieldVisitor() {
+            super(Opcodes.ASM9);
         }
-        if (Hydrated.class.getName().equals(annotation) && "factoryMethod".equals(arg0)) {
-            HydrationItemDescriptor itemDescriptor = new HydrationItemDescriptor();
-            itemDescriptor.setFactoryMethod((String) arg1);
-            itemDescriptor.setMutators(retrieveMutators());
-            cacheMutators.put(fieldName, itemDescriptor);
+
+        @Override
+        public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
+            return handleAnnotation(descriptor);
         }
     }
 
-    public AnnotationVisitor visitAnnotation(String arg0, String arg1) {
-        return this;
-    }
+    /**
+     * AnnotationVisitor that captures the annotation member values the scanner cares about.
+     */
+    private class HydrationAnnotationVisitor extends AnnotationVisitor {
 
-    public AnnotationVisitor visitArray(String arg0) {
-        return this;
-    }
+        HydrationAnnotationVisitor() {
+            super(Opcodes.ASM9);
+        }
 
-    public void visitEnum(String arg0, String arg1, String arg2) {
-        //do nothing
+        @Override
+        public void visit(String arg0, Object arg1) {
+            if (Cache.class.getName().equals(annotation) && "region".equals(arg0)) {
+                cacheRegion = (String) arg1;
+            }
+            if (Hydrated.class.getName().equals(annotation) && "factoryMethod".equals(arg0)) {
+                HydrationItemDescriptor itemDescriptor = new HydrationItemDescriptor();
+                itemDescriptor.setFactoryMethod((String) arg1);
+                itemDescriptor.setMutators(retrieveMutators());
+                cacheMutators.put(fieldName, itemDescriptor);
+            }
+        }
+
+        @Override
+        public AnnotationVisitor visitAnnotation(String arg0, String arg1) {
+            return this;
+        }
+
+        @Override
+        public AnnotationVisitor visitArray(String arg0) {
+            return this;
+        }
     }
 
 }

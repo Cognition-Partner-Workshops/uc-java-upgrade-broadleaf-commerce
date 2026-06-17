@@ -19,11 +19,14 @@
  */
 package org.broadleafcommerce.common.util.dao;
 
-import org.hibernate.ejb.Ejb3Configuration;
+import org.hibernate.boot.Metadata;
+import org.hibernate.boot.MetadataSources;
+import org.hibernate.boot.registry.StandardServiceRegistry;
+import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 
-import java.util.HashMap;
+import java.util.Properties;
 
-import javax.persistence.spi.PersistenceUnitInfo;
+import jakarta.persistence.spi.PersistenceUnitInfo;
 
 /**
  * 
@@ -32,21 +35,31 @@ import javax.persistence.spi.PersistenceUnitInfo;
  */
 public class EJB3ConfigurationDaoImpl implements EJB3ConfigurationDao {
 
-    private Ejb3Configuration configuration = null;
+    private Metadata configuration = null;
 
     protected PersistenceUnitInfo persistenceUnitInfo;
 
-    public Ejb3Configuration getConfiguration() {
+    public Metadata getConfiguration() {
         synchronized(this) {
             if (configuration == null) {
-                Ejb3Configuration temp = new Ejb3Configuration();
-                String previousValue = persistenceUnitInfo.getProperties().getProperty("hibernate.hbm2ddl.auto");
-                persistenceUnitInfo.getProperties().setProperty("hibernate.hbm2ddl.auto", "none");
-                configuration = temp.configure(persistenceUnitInfo, new HashMap());
-                configuration.getHibernateConfiguration().buildSessionFactory();
-                if (previousValue != null) {
-                    persistenceUnitInfo.getProperties().setProperty("hibernate.hbm2ddl.auto", previousValue);
+                // TODO(java21-migration): Hibernate 6 removed org.hibernate.ejb.Ejb3Configuration; rebuild the
+                // boot-time Metadata from the persistence unit's managed classes and properties. Callers that
+                // previously used Configuration#getClassMapping(String) should use Metadata#getEntityBinding(String).
+                Properties properties = new Properties();
+                if (persistenceUnitInfo.getProperties() != null) {
+                    properties.putAll(persistenceUnitInfo.getProperties());
                 }
+                properties.setProperty("hibernate.hbm2ddl.auto", "none");
+                StandardServiceRegistry serviceRegistry = new StandardServiceRegistryBuilder()
+                        .applySettings(properties)
+                        .build();
+                MetadataSources sources = new MetadataSources(serviceRegistry);
+                if (persistenceUnitInfo.getManagedClassNames() != null) {
+                    for (String managedClassName : persistenceUnitInfo.getManagedClassNames()) {
+                        sources.addAnnotatedClassName(managedClassName);
+                    }
+                }
+                configuration = sources.buildMetadata();
             }
         }
         return configuration;

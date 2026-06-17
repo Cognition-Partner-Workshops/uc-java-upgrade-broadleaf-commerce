@@ -20,40 +20,89 @@
 package org.broadleafcommerce.common.extensibility.cache.ehcache;
 
 import net.sf.ehcache.CacheManager;
+import net.sf.ehcache.config.Configuration;
+import net.sf.ehcache.config.ConfigurationFactory;
 import org.broadleafcommerce.common.extensibility.context.ResourceInputStream;
 import org.broadleafcommerce.common.extensibility.context.merge.MergeXmlConfigResource;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.FatalBeanException;
-import org.springframework.cache.ehcache.EhCacheManagerFactoryBean;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.FactoryBean;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.io.Resource;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-public class MergeEhCacheManagerFactoryBean extends EhCacheManagerFactoryBean implements ApplicationContextAware {
+// TODO(java21-migration): Spring 6 removed org.springframework.cache.ehcache.EhCacheManagerFactoryBean (Spring dropped
+// EhCache 2.x integration). Re-implement the minimal FactoryBean lifecycle directly against the net.sf.ehcache API so
+// the existing merged ehcache.xml configuration continues to bootstrap a net.sf.ehcache.CacheManager.
+public class MergeEhCacheManagerFactoryBean implements FactoryBean<CacheManager>, InitializingBean, DisposableBean, ApplicationContextAware {
 
     private ApplicationContext applicationContext;
+
+    protected Resource configLocation;
+
+    protected CacheManager cacheManager;
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
     }
 
-    @javax.annotation.Resource(name="blMergedCacheConfigLocations")
+    @jakarta.annotation.Resource(name="blMergedCacheConfigLocations")
     protected Set<String> mergedCacheConfigLocations;
 
     protected List<Resource> configLocations;
 
+    public void setConfigLocation(Resource configLocation) {
+        this.configLocation = configLocation;
+    }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        Configuration configuration;
+        if (configLocation != null) {
+            try (InputStream is = configLocation.getInputStream()) {
+                configuration = ConfigurationFactory.parseConfiguration(is);
+            }
+        } else {
+            configuration = ConfigurationFactory.parseConfiguration();
+        }
+        this.cacheManager = CacheManager.newInstance(configuration);
+    }
+
+    @Override
+    public CacheManager getObject() {
+        return this.cacheManager;
+    }
+
+    @Override
+    public Class<?> getObjectType() {
+        return (this.cacheManager != null ? this.cacheManager.getClass() : CacheManager.class);
+    }
+
+    @Override
+    public boolean isSingleton() {
+        return true;
+    }
+
     @Override
     public void destroy() {
-        super.destroy();
+        if (this.cacheManager != null) {
+            this.cacheManager.shutdown();
+        }
         try {
             CacheManager cacheManager = getObject();
+            if (cacheManager == null) {
+                return;
+            }
             Field cacheManagerTimer = CacheManager.class.getDeclaredField("cacheManagerTimer");
             cacheManagerTimer.setAccessible(true);
             Object failSafeTimer = cacheManagerTimer.get(cacheManager);

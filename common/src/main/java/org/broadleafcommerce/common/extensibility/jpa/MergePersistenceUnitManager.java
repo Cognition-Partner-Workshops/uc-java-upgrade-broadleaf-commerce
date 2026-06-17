@@ -28,8 +28,6 @@ import org.broadleafcommerce.common.extensibility.jpa.convert.BroadleafClassTran
 import org.broadleafcommerce.common.extensibility.jpa.convert.BroadleafPersistenceUnitDeclaringClassTransformer;
 import org.broadleafcommerce.common.extensibility.jpa.convert.EntityMarkerClassTransformer;
 import org.broadleafcommerce.common.extensibility.jpa.copy.NullClassTransformer;
-import org.hibernate.ejb.AvailableSettings;
-import org.hibernate.ejb.instrument.InterceptFieldClassFileTransformer;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.instrument.classloading.LoadTimeWeaver;
 import org.springframework.jmx.export.MBeanExporter;
@@ -48,10 +46,10 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.Resource;
 import javax.management.ObjectName;
-import javax.persistence.spi.PersistenceUnitInfo;
+import jakarta.persistence.spi.PersistenceUnitInfo;
 import javax.sql.DataSource;
 
 /**
@@ -223,8 +221,13 @@ public class MergePersistenceUnitManager extends DefaultPersistenceUnitManager {
             
             boolean weaverRegistered = true;
             for (PersistenceUnitInfo pui : mergedPus.values()) {
-                if (pui.getProperties().containsKey(AvailableSettings.USE_CLASS_ENHANCER) && "true".equalsIgnoreCase(pui.getProperties().getProperty(AvailableSettings.USE_CLASS_ENHANCER))) {
-                    pui.addTransformer(new InterceptFieldClassFileTransformer(pui.getManagedClassNames()));
+                // TODO(java21-migration): Hibernate 6 removed runtime bytecode instrumentation
+                // (org.hibernate.ejb.instrument.InterceptFieldClassFileTransformer and the
+                // "hibernate.ejb.use_class_enhancer" setting). Bytecode enhancement is now a build-time
+                // concern, so there is no runtime transformer to register here.
+                if ("true".equalsIgnoreCase(pui.getProperties().getProperty("hibernate.ejb.use_class_enhancer"))) {
+                    LOG.warn("The 'hibernate.ejb.use_class_enhancer' setting is no longer supported in Hibernate 6; " +
+                            "runtime field interception has been removed in favor of build-time bytecode enhancement.");
                 }
                 for (BroadleafClassTransformer transformer : classTransformers) {
                     try {

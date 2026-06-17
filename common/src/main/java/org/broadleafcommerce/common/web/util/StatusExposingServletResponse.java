@@ -19,8 +19,8 @@
  */
 package org.broadleafcommerce.common.web.util;
 
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpServletResponseWrapper;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponseWrapper;
 import java.io.IOException;
 
 /**
@@ -66,11 +66,8 @@ public class StatusExposingServletResponse extends HttpServletResponseWrapper {
         this.httpStatus = SC_OK;
     }
 
-    @Override
-    public void setStatus(int status, String string) {
-        super.setStatus(status, string);
-        this.httpStatus = status;
-    }
+    // TODO(java21-migration): Servlet 6 (jakarta.servlet 6) removed HttpServletResponse#setStatus(int, String); the
+    // reason phrase is no longer settable, so only the single-argument setStatus(int) override above remains.
 
     public int getStatus() {
         return httpStatus;
