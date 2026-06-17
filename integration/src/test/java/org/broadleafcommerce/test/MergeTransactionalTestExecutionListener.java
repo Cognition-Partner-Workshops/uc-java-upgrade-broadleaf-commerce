@@ -28,8 +28,6 @@ import org.springframework.test.context.TestContext;
 import org.springframework.test.context.support.AbstractTestExecutionListener;
 import org.springframework.test.context.transaction.AfterTransaction;
 import org.springframework.test.context.transaction.BeforeTransaction;
-import org.springframework.test.context.transaction.TransactionConfiguration;
-import org.springframework.test.context.transaction.TransactionConfigurationAttributes;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionException;
@@ -98,7 +96,6 @@ import java.util.Map;
  * @see BeforeTransaction
  * @see AfterTransaction
  */
-@SuppressWarnings("deprecation")
 public class MergeTransactionalTestExecutionListener extends AbstractTestExecutionListener {
 
     private static final Log logger = LogFactory.getLog(MergeTransactionalTestExecutionListener.class);
@@ -487,6 +484,38 @@ public class MergeTransactionalTestExecutionListener extends AbstractTestExecuti
         return configAttributes;
     }
 
+
+    /**
+     * Broadleaf-local replacement for Spring's removed
+     * {@code org.springframework.test.context.transaction.TransactionConfigurationAttributes}.
+     * Holds the configured transaction manager bean name and default rollback flag derived from
+     * {@link TransactionConfiguration @TransactionConfiguration}.
+     */
+    private static class TransactionConfigurationAttributes {
+
+        private final String transactionManagerName;
+
+        private final boolean defaultRollback;
+
+        public TransactionConfigurationAttributes(String transactionManagerName, boolean defaultRollback) {
+            this.transactionManagerName = transactionManagerName;
+            this.defaultRollback = defaultRollback;
+        }
+
+        public String getTransactionManagerName() {
+            return this.transactionManagerName;
+        }
+
+        public boolean isDefaultRollback() {
+            return this.defaultRollback;
+        }
+
+        @Override
+        public String toString() {
+            return "TransactionConfigurationAttributes[transactionManagerName='" + this.transactionManagerName +
+                    "', defaultRollback=" + this.defaultRollback + "]";
+        }
+    }
 
     /**
      * Internal context holder for a specific test method.
