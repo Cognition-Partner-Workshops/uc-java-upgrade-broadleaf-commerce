@@ -56,8 +56,6 @@ import org.broadleafcommerce.common.structure.dto.ItemCriteriaDTO;
 import org.broadleafcommerce.common.structure.dto.StructuredContentDTO;
 import org.broadleafcommerce.common.util.FormatUtil;
 import org.broadleafcommerce.common.web.BroadleafRequestContext;
-import org.hibernate.Criteria;
-import org.hibernate.criterion.Projections;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -69,7 +67,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.criteria.CriteriaQuery;
 
 /**
  * @author bpolster
@@ -106,6 +107,9 @@ public class StructuredContentServiceImpl implements StructuredContentService {
     @Resource(name = "blStatisticsService")
     protected StatisticsService statisticsService;
 
+    @PersistenceContext(unitName = "blPU")
+    protected EntityManager em;
+
     protected Cache structuredContentCache;
 
     @Override
@@ -129,8 +133,10 @@ public class StructuredContentServiceImpl implements StructuredContentService {
     }
 
     @Override
-    public List<StructuredContent> findContentItems(Criteria c) {
-        return c.list();
+    // TODO(java21-migration): Hibernate 6 removed the legacy org.hibernate.Criteria API; execute the JPA CriteriaQuery
+    // through the EntityManager instead of calling Criteria.list().
+    public List<StructuredContent> findContentItems(CriteriaQuery<StructuredContent> c) {
+        return em.createQuery(c).getResultList();
     }
 
     @Override
@@ -139,9 +145,10 @@ public class StructuredContentServiceImpl implements StructuredContentService {
     }
 
     @Override
-    public Long countContentItems(Criteria c) {
-        c.setProjection(Projections.rowCount());
-        return (Long) c.uniqueResult();
+    // TODO(java21-migration): Hibernate 6 removed the legacy org.hibernate.Criteria/Projections API; the caller now
+    // supplies a JPA CriteriaQuery<Long> (e.g. selecting builder.count(root)) that is executed via the EntityManager.
+    public Long countContentItems(CriteriaQuery<Long> c) {
+        return em.createQuery(c).getSingleResult();
     }
 
     /**

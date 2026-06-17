@@ -27,7 +27,8 @@ import org.broadleafcommerce.common.locale.domain.Locale;
 import org.broadleafcommerce.common.persistence.EntityConfiguration;
 import org.broadleafcommerce.common.sandbox.domain.SandBox;
 import org.broadleafcommerce.common.structure.dto.StructuredContentDTO;
-import org.hibernate.Criteria;
+
+import jakarta.persistence.criteria.CriteriaQuery;
 
 import java.util.List;
 import java.util.Map;
@@ -93,7 +94,9 @@ public interface StructuredContentService {
      * @param criteria - the criteria used to search for content
      * @return
      */
-    List<StructuredContent> findContentItems(Criteria criteria);
+    // TODO(java21-migration): Hibernate 6 removed the legacy org.hibernate.Criteria API; this now accepts a JPA
+    // jakarta.persistence.criteria.CriteriaQuery built against the EntityManager.
+    List<StructuredContent> findContentItems(CriteriaQuery<StructuredContent> criteria);
     
     /**
      * Finds all content items regardless of the {@link Sandbox} they are a member of
@@ -102,11 +105,13 @@ public interface StructuredContentService {
     List<StructuredContent> findAllContentItems();
     
     /**
-     * Follows the same rules as {@link #findContentItems(org.broadleafcommerce.common.sandbox.domain.SandBox, org.hibernate.Criteria) findContentItems}.
+     * Follows the same rules as {@link #findContentItems(CriteriaQuery) findContentItems}.
      *
      * @return the count of items in this sandbox that match the passed in Criteria
      */
-    Long countContentItems(Criteria c);
+    // TODO(java21-migration): Hibernate 6 removed the legacy org.hibernate.Criteria/Projections API; counting now uses
+    // a JPA jakarta.persistence.criteria.CriteriaQuery<Long>.
+    Long countContentItems(CriteriaQuery<Long> c);
 
     /**
      * Saves the given <b>type</b> and returns the merged instance

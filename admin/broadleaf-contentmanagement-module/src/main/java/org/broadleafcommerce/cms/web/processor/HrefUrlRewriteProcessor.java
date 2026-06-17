@@ -7,9 +7,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *       http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -20,22 +20,22 @@
 package org.broadleafcommerce.cms.web.processor;
 
 import org.broadleafcommerce.common.file.service.StaticAssetPathService;
-import org.thymeleaf.Arguments;
-import org.thymeleaf.dom.Element;
+import org.thymeleaf.context.ITemplateContext;
+import org.thymeleaf.model.IProcessableElementTag;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 
 /**
- * Similar to {@link UrlRewriteProcessor} but handles href tags.   
+ * Similar to {@link UrlRewriteProcessor} but handles href tags.
  * Mainly those that have a useCdn=true attribute or those that are inside a script tag.
- * 
+ *
  * @author bpolster
  */
 public class HrefUrlRewriteProcessor extends UrlRewriteProcessor {
-    
+
     @Resource(name = "blStaticAssetPathService")
     protected StaticAssetPathService staticAssetPathService;
 
@@ -50,34 +50,20 @@ public class HrefUrlRewriteProcessor extends UrlRewriteProcessor {
     }
 
     @Override
-    protected Map<String, String> getModifiedAttributeValues(Arguments arguments, Element element, String attributeName) {
+    protected Map<String, String> getModifiedAttributeValues(ITemplateContext context, IProcessableElementTag tag, String attributeValue) {
         Map<String, String> attrs = new HashMap<String, String>();
-        
-        String elementName = element.getNormalizedName();
-        String useCDN = element.getAttributeValue("useCDN");
+
+        String elementName = tag.getElementCompleteName();
+        String useCDN = tag.getAttributeValue("useCDN");
 
         if (LINK.equals(elementName) || (useCDN != null && "true".equals(useCDN))) {
-            attrs = super.getModifiedAttributeValues(arguments, element, attributeName);
+            attrs = super.getModifiedAttributeValues(context, tag, attributeValue);
             String srcAttr = attrs.remove("src");
             attrs.put(HREF, srcAttr);
         } else {
-            attrs.put(HREF, element.getAttributeValue(attributeName));
+            attrs.put(HREF, attributeValue);
         }
         return attrs;
     }
 
-    @Override
-    protected ModificationType getModificationType(Arguments arguments, Element element, String attributeName, String newAttributeName) {
-        return ModificationType.SUBSTITUTION;
-    }
-
-    @Override
-    protected boolean removeAttributeIfEmpty(Arguments arguments, Element element, String attributeName, String newAttributeName) {
-        return true;
-    }
-
-    @Override
-    protected boolean recomputeProcessorsAfterExecution(Arguments arguments, Element element, String attributeName) {
-        return false;
-    }
 }

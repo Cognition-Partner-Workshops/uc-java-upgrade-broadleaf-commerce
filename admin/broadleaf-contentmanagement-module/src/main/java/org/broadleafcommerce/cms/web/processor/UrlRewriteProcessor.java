@@ -19,20 +19,24 @@
  */
 package org.broadleafcommerce.cms.web.processor;
 
+import org.apache.commons.lang3.StringUtils;
 import org.broadleafcommerce.cms.file.service.StaticAssetService;
 import org.broadleafcommerce.common.file.service.StaticAssetPathService;
 import org.broadleafcommerce.common.web.BroadleafRequestContext;
-import org.thymeleaf.Arguments;
-import org.thymeleaf.dom.Element;
-import org.thymeleaf.processor.attr.AbstractAttributeModifierAttrProcessor;
-import org.thymeleaf.standard.expression.Expression;
+import org.thymeleaf.context.ITemplateContext;
+import org.thymeleaf.engine.AttributeName;
+import org.thymeleaf.model.IProcessableElementTag;
+import org.thymeleaf.processor.element.AbstractAttributeTagProcessor;
+import org.thymeleaf.processor.element.IElementTagStructureHandler;
+import org.thymeleaf.standard.expression.IStandardExpression;
 import org.thymeleaf.standard.expression.StandardExpressions;
+import org.thymeleaf.templatemode.TemplateMode;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.annotation.Resource;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * A Thymeleaf processor that processes the given url through the StaticAssetService's
@@ -41,8 +45,15 @@ import javax.servlet.http.HttpServletRequest;
  * 
  * @author apazzolini
  */
-public class UrlRewriteProcessor extends AbstractAttributeModifierAttrProcessor {
-    
+// TODO(java21-migration): Thymeleaf 3 removed the DOM-based AbstractAttributeModifierAttrProcessor (org.thymeleaf.dom.*,
+// org.thymeleaf.Arguments, ModificationType). Attribute processors now extend AbstractAttributeTagProcessor and mutate
+// the event-based model through IElementTagStructureHandler; the computed attribute values are applied (or removed when
+// empty) in doProcess, preserving the previous SUBSTITUTION/removeAttributeIfEmpty behavior. The HttpServletRequest is
+// obtained from BroadleafRequestContext instead of casting the Thymeleaf context.
+public class UrlRewriteProcessor extends AbstractAttributeTagProcessor {
+
+    protected static final String DIALECT_PREFIX = "blc";
+
     @Resource(name = "blStaticAssetPathService")
     protected StaticAssetPathService staticAssetPathService;
 
@@ -54,14 +65,9 @@ public class UrlRewriteProcessor extends AbstractAttributeModifierAttrProcessor 
     }
     
     protected UrlRewriteProcessor(final String attributeName) {
-        super(attributeName);
+        super(TemplateMode.HTML, DIALECT_PREFIX, null, false, attributeName, true, 1000, true);
     }
 
-    @Override
-    public int getPrecedence() {
-        return 1000;
-    }
-    
     /**
      * @return true if the current request.scheme = HTTPS or if the request.isSecure value is true.
      */
@@ -69,9 +75,20 @@ public class UrlRewriteProcessor extends AbstractAttributeModifierAttrProcessor 
         return ("HTTPS".equalsIgnoreCase(request.getScheme()) || request.isSecure());
     } 
 
-    
     @Override
-    protected Map<String, String> getModifiedAttributeValues(Arguments arguments, Element element, String attributeName) {
+    protected void doProcess(ITemplateContext context, IProcessableElementTag tag, AttributeName attributeName,
+            String attributeValue, IElementTagStructureHandler structureHandler) {
+        Map<String, String> attrs = getModifiedAttributeValues(context, tag, attributeValue);
+        for (Map.Entry<String, String> entry : attrs.entrySet()) {
+            if (StringUtils.isNotEmpty(entry.getValue())) {
+                structureHandler.setAttribute(entry.getKey(), entry.getValue());
+            } else {
+                structureHandler.removeAttribute(entry.getKey());
+            }
+        }
+    }
+
+    protected Map<String, String> getModifiedAttributeValues(ITemplateContext context, IProcessableElementTag tag, String attributeValue) {
         Map<String, String> attrs = new HashMap<String, String>();
         HttpServletRequest request = BroadleafRequestContext.getBroadleafRequestContext().getRequest();
         
@@ -80,14 +97,14 @@ public class UrlRewriteProcessor extends AbstractAttributeModifierAttrProcessor 
             secureRequest = isRequestSecure(request);
         }
         
-        String elementValue = element.getAttributeValue(attributeName);
+        String elementValue = attributeValue;
 
-        if (elementValue.startsWith("/")) {
+        if (elementValue != null && elementValue.startsWith("/")) {
             elementValue = "@{ " + elementValue + " }";
         }
-        Expression expression = (Expression) StandardExpressions.getExpressionParser(arguments.getConfiguration())
-                .parseExpression(arguments.getConfiguration(), arguments, elementValue);
-        String assetPath = (String) expression.execute(arguments.getConfiguration(), arguments);
+        IStandardExpression expression = StandardExpressions.getExpressionParser(context.getConfiguration())
+                .parseExpression(context, elementValue);
+        String assetPath = (String) expression.execute(context);
         
         // We are forcing an evaluation of @{} from Thymeleaf above which will automatically add a contextPath, no need to
         // add it twice
@@ -98,18 +115,4 @@ public class UrlRewriteProcessor extends AbstractAttributeModifierAttrProcessor 
         return attrs;
     }
 
-    @Override
-    protected ModificationType getModificationType(Arguments arguments, Element element, String attributeName, String newAttributeName) {
-        return ModificationType.SUBSTITUTION;
-    }
-
-    @Override
-    protected boolean removeAttributeIfEmpty(Arguments arguments, Element element, String attributeName, String newAttributeName) {
-        return true;
-    }
-
-    @Override
-    protected boolean recomputeProcessorsAfterExecution(Arguments arguments, Element element, String attributeName) {
-        return false;
-    }
 }
