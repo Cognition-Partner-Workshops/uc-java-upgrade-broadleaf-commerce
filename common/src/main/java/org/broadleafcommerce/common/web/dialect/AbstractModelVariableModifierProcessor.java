@@ -61,8 +61,9 @@ public abstract class AbstractModelVariableModifierProcessor extends AbstractEle
     protected void doProcess(ITemplateContext context, IProcessableElementTag tag, IElementTagStructureHandler structureHandler) {
         modifyModelAttributes(context, tag, structureHandler);
 
-        // Remove the tag from the output
-        structureHandler.removeElement();
+        // Remove only the host element's tags, preserving the body so the local variables
+        // contributed above remain visible to it (TL3 removeElement() would drop the body too).
+        structureHandler.removeTags();
     }
 
     /**
