@@ -1,0 +1,163 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  # Baseline toolchain for this repo (README: JDK 1.8; compiler source/target 1.7).
+  # Do not bump here: the Java upgrade is tracked separately.
+  javaVersion: "8"
+  javaDistribution: temurin
+  MAVEN_OPTS: -Xmx3g
+  mvnArgs: -B -V -ntp -s .github/maven-settings.xml
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: ${{ env.javaDistribution }}
+          java-version: ${{ env.javaVersion }}
+          cache: maven
+      - name: Compile and install all modules (tests skipped)
+        run: mvn $mvnArgs clean install -DskipTests
+      - name: Upload jars
+        uses: actions/upload-artifact@v4
+        with:
+          name: broadleaf-jars
+          path: "**/target/*.jar"
+          if-no-files-found: error
+          retention-days: 7
+
+  lint:
+    name: Lint (license headers + API signature check)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: ${{ env.javaDistribution }}
+          java-version: ${{ env.javaVersion }}
+          cache: maven
+      # license-maven-plugin (update-file-header, process-sources) rewrites missing or
+      # malformed license headers; animal-sniffer (bound to the test phase) checks
+      # that main code only uses the Java 1.7 API (java17 signature).
+      - name: Run license-maven-plugin and animal-sniffer
+        run: mvn $mvnArgs test -DskipTests
+      - name: Fail if license headers were changed by the build
+        run: |
+          if ! git diff --exit-code; then
+            echo "::error::license-maven-plugin modified file headers. Run 'mvn process-sources' locally and commit the result."
+            exit 1
+          fi
+
+  test:
+    name: Unit & integration tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: ${{ env.javaDistribution }}
+          java-version: ${{ env.javaVersion }}
+          cache: maven
+      # Runs surefire in every module, including the Spock/TestNG suites in
+      # integration/ (non-legacy set, in-memory HSQLDB). The heavy legacy suite
+      # (-Plegacy-test) is opt-in upstream and not run here.
+      - name: Run tests
+        run: mvn $mvnArgs install
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: |
+            **/target/surefire-reports/
+            **/target/site/jacoco/
+          if-no-files-found: warn
+          retention-days: 14
+
+  sonarqube:
+    name: SonarQube scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL || secrets.SONAR_HOST_URL }}
+    steps:
+      - name: Skip notice
+        if: env.SONAR_TOKEN == ''
+        run: echo "::notice::SONAR_TOKEN is not configured; skipping SonarQube scan."
+      - uses: actions/checkout@v4
+        if: env.SONAR_TOKEN != ''
+        with:
+          fetch-depth: 0
+      # The project compiles on JDK 8; the SonarScanner for Maven needs JDK 17+.
+      # The last listed version becomes the default JAVA_HOME.
+      - name: Set up JDKs
+        if: env.SONAR_TOKEN != ''
+        uses: actions/setup-java@v4
+        with:
+          distribution: ${{ env.javaDistribution }}
+          java-version: |
+            17
+            ${{ env.javaVersion }}
+          cache: maven
+      - name: Build and test (JDK 8)
+        if: env.SONAR_TOKEN != ''
+        run: mvn $mvnArgs install
+      - name: SonarQube analysis (JDK 17)
+        if: env.SONAR_TOKEN != ''
+        run: |
+          export JAVA_HOME="$JAVA_HOME_17_X64"
+          mvn $mvnArgs org.sonarsource.scanner.maven:sonar-maven-plugin:5.1.0.4751:sonar \
+            -Dsonar.projectKey="${GITHUB_REPOSITORY_OWNER}_${GITHUB_REPOSITORY#*/}" \
+            -Dsonar.host.url="$SONAR_HOST_URL" \
+            -Dsonar.java.jdkHome="$JAVA_HOME_8_X64" \
+            -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
+
+  package:
+    name: Package release artifacts
+    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch) && github.event_name != 'pull_request'
+    needs: [build, lint, test]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: ${{ env.javaDistribution }}
+          java-version: ${{ env.javaVersion }}
+          cache: maven
+      # Builds the binary + source jars that a release would publish; nothing is deployed.
+      - name: Package jars and source jars
+        run: mvn $mvnArgs clean package -DskipTests -Psources
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: broadleaf-release-${{ github.sha }}
+          path: |
+            **/target/*.jar
+            **/pom.xml
+          if-no-files-found: error
+          retention-days: 30

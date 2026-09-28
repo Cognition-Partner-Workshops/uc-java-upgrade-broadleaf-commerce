@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Maven settings used by CI (.github/workflows/ci.yml).
+  solr-parent 4.10.3 and org.restlet.parent 2.1.1 declare the retired
+  http://maven.restlet.org repository (id "maven-restlet"); the Restlet 2.1.1
+  artifacts are not on Maven Central, so route that repository to the
+  maintained HTTPS mirror. Maven 3.8+ also blocks the original plain-HTTP URL.
+-->
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 https://maven.apache.org/xsd/settings-1.0.0.xsd">
+  <mirrors>
+    <mirror>
+      <id>restlet-talend</id>
+      <name>Restlet Talend mirror</name>
+      <mirrorOf>maven-restlet</mirrorOf>
+      <url>https://maven.restlet.talend.com</url>
+    </mirror>
+  </mirrors>
+</settings>
